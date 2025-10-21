@@ -22,20 +22,18 @@ public class SignupTest {
     @Autowired
     private UserRepository userRepository;
 
-
-
     @Test
     @Transactional
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
                 0,
-                "test1",
-                "test123",
-                "01012345678",
+                "gangho",
+                "inter612##",
+                "강호",
                 "01012345678",
                     Classification.기업,
-                "01-234-5678"
+                "4321-4321"
             );
 
 
@@ -44,7 +42,7 @@ public class SignupTest {
         assertThat(user.getUser_id()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.기업);
         assertThat(user.getMember()).isNotNull();
-        assertThat(user.getMember().getSno()).isEqualTo("01-234-5678");
+        assertThat(user.getMember().getSno()).isEqualTo("4321-4321");
     }
 
 
@@ -54,12 +52,12 @@ public class SignupTest {
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
                 0,
-                "rtest1",
-                "rtest123",
-                "01012345678",
+                "jueon",
+                "ganholove",
+                "주은",
                 "01012345678",
                 Classification.심사원,
-                "r123"
+                "ganglove"
         );
 
 
