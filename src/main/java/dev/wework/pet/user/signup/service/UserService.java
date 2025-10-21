@@ -25,7 +25,7 @@ public class UserService {
                 signupUserRequest.ph_num(),
                 signupUserRequest.classification()
         );
-
+        // Enum 클래스의 기업or심사원이면 해당 기준에 맞는 숫자를 넣기 없으면 예외처리
         switch (signupUserRequest.classification()){
             case 기업 -> user.registerMember(signupUserRequest.Classfinumber());
             case 심사원 -> user.registerReviewer(signupUserRequest.Classfinumber());
