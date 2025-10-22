@@ -3,6 +3,7 @@ package dev.wework.pet.user.signup.service;
 import dev.wework.pet.user.configure.validation.Validation;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
+import dev.wework.pet.user.signup.entity.Member;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.exception.*;
 import dev.wework.pet.user.signup.repository.UserRepository;
@@ -64,7 +65,13 @@ public class UserService {
         );
         // Enum 클래스의 기업or심사원이면 해당 기준에 맞는 숫자를 넣기 없으면 예외처리
         switch (signupUserRequest.classification()){
-            case 기업 -> user.registerMember(signupUserRequest.Classfinumber());
+            case 기업 -> {
+                String sno = signupUserRequest.Classfinumber();
+                if (!Validation.isValidSno(sno)){
+                    throw new RuntimeException("e");
+                }
+                user.registerMember(new Member(user, sno));
+            }
             case 심사원 -> user.registerReviewer(signupUserRequest.Classfinumber());
             default -> throw new NotMatchClassficationException();
         }
