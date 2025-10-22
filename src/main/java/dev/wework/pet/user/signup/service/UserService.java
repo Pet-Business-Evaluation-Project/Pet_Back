@@ -68,7 +68,7 @@ public class UserService {
             case 기업 -> {
                 String sno = signupUserRequest.Classfinumber();
                 if (!Validation.isValidSno(sno)){
-                    throw new RuntimeException("e");
+                    throw new ValidationFaliureSno();
                 }
                 user.registerMember(new Member(user, sno));
             }
