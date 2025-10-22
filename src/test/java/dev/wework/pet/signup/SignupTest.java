@@ -83,7 +83,7 @@ public class SignupTest {
     @Test
     @DisplayName("로그인 아이디 중복확인")
     void DuplicationLoginCheck(){
-        boolean check = userService.DuplicationLoginIDCheck("test");
+        boolean check = userService.DuplicationLoginIDCheck("jueon");
 
         assertThat(check).isFalse();
     }
