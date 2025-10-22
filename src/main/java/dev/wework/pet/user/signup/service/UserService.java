@@ -1,11 +1,13 @@
 package dev.wework.pet.user.signup.service;
 
+import dev.wework.pet.user.configure.validation.Validation;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.exception.DuplicationLoginID;
 import dev.wework.pet.user.signup.exception.NotMatchClassficationException;
 import dev.wework.pet.user.signup.exception.PasswordEncodeException;
+import dev.wework.pet.user.signup.exception.ValidationFaliurePassword;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -33,14 +35,21 @@ public class UserService {
             return userRepository.findByLoginIDIgnoreCase(loginID).isPresent();
     }
 
+    public boolean ValidationPasswordCheck(String password) {
+       return Validation.isValidPassword(password);
+    }
 
     public User signup(SignupUserRequest signupUserRequest) {
+        String hashPassword;
 
         if(DuplicationLoginIDCheck(signupUserRequest.loginID())){
             throw new DuplicationLoginID();
         }
 
-        String hashPassword =passwordEncoding(signupUserRequest.loginID(),signupUserRequest.password());
+        if(ValidationPasswordCheck(signupUserRequest.password())){
+             hashPassword =passwordEncoding(signupUserRequest.loginID(),signupUserRequest.password());
+        } else throw new ValidationFaliurePassword();
+
 
         User user = new User(
                 signupUserRequest.loginID(),
