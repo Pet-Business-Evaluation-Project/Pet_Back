@@ -9,8 +9,6 @@ import dev.wework.pet.user.signup.exception.PasswordEncodeException;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 
 @Service
 public class UserService {
@@ -32,7 +30,7 @@ public class UserService {
     }
 
     public boolean DuplicationLoginIDCheck(String loginID) {
-            return userRepository.findByLoginID(loginID).isPresent();
+            return userRepository.findByLoginIDIgnoreCase(loginID).isPresent();
     }
 
 
