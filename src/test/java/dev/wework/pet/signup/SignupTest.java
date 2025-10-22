@@ -1,5 +1,6 @@
 package dev.wework.pet.signup;
 
+import dev.wework.pet.user.configure.validation.Validation;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
@@ -86,5 +87,32 @@ public class SignupTest {
         boolean check = userService.DuplicationLoginIDCheck("jueon");
 
         assertThat(check).isFalse();
+    }
+
+    @Test
+    @DisplayName("비밀번호 유효성 검사")
+    void PasswordValidation(){
+        boolean check = userService.ValidationPasswordCheck("asdf!1asdasd");
+
+        assertThat(check).isTrue();
+    }
+
+    @Test
+    @DisplayName("전화번호 유효성 검사")
+    void PhnumValidation(){
+
+        assertThat(userService.ValidationPhnumCheck("01012345678")).isTrue();
+        assertThat(userService.ValidationPhnumCheck("010-1234-5678")).isTrue();
+        assertThat(userService.ValidationPhnumCheck("02-123-5678")).isTrue();
+        assertThat(userService.ValidationPhnumCheck("01234982340")).isTrue();
+
+    }
+
+    @Test
+    @DisplayName("사업자등록번호 유효성 검사")
+    void SnoValidation(){
+        assertThat(Validation.isValidSno("607-86-12034")).isTrue();
+        assertThat(Validation.isValidSno("107-20-59931")).isTrue();
+
     }
 }
