@@ -23,7 +23,7 @@ public class SignupTest {
     private UserRepository userRepository;
 
     @Test
-    @Transactional
+   // @Transactional
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
@@ -47,7 +47,7 @@ public class SignupTest {
 
 
     @Test
-    @Transactional
+  //  @Transactional
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
