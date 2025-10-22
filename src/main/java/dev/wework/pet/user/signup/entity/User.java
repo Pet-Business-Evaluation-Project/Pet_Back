@@ -15,10 +15,10 @@ public class User {
     private int user_id;
 
     @Column(unique = true, nullable = false)
-    private String login_id;
+    private String loginID;
     private String password;
     private String name;
-    private String ph_num;
+    private String phnum;
     @Enumerated(EnumType.STRING)
     private Classification classification;
 
@@ -31,11 +31,11 @@ public class User {
 
     protected User() {}
 
-    public User(String login_id, String password, String name, String ph_num, Classification classification) {
-        this.login_id = login_id;
+    public User(String loginID, String password, String name, String phnum, Classification classification) {
+        this.loginID = loginID;
         this.password = password;
         this.name = name;
-        this.ph_num = ph_num;
+        this.phnum = phnum;
         this.classification = classification;
     }
 

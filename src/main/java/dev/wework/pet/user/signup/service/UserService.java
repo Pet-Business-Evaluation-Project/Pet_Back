@@ -19,10 +19,10 @@ public class UserService {
 
     public User signup(SignupUserRequest signupUserRequest) {
         User user = new User(
-                signupUserRequest.login_id(),
+                signupUserRequest.loginID(),
                 signupUserRequest.password(),
                 signupUserRequest.name(),
-                signupUserRequest.ph_num(),
+                signupUserRequest.phnum(),
                 signupUserRequest.classification()
         );
         // Enum 클래스의 기업or심사원이면 해당 기준에 맞는 숫자를 넣기 없으면 예외처리
