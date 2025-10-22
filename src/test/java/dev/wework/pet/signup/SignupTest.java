@@ -2,6 +2,7 @@ package dev.wework.pet.signup;
 
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
+import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import dev.wework.pet.user.signup.service.UserService;
@@ -23,7 +24,7 @@ public class SignupTest {
     private UserRepository userRepository;
 
     @Test
-   // @Transactional
+    @Transactional
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
@@ -47,7 +48,7 @@ public class SignupTest {
 
 
     @Test
-  //  @Transactional
+    @Transactional
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
@@ -67,5 +68,23 @@ public class SignupTest {
         assertThat(user.getClassification()).isEqualTo(Classification.심사원);
         assertThat(user.getReviewer()).isNotNull();
         assertThat(user.getReviewer().getRno()).isEqualTo("r123");
+    }
+
+    @Test
+    @DisplayName("패스워드 인코더 작동확인")
+    void EncoderCheck(){
+        PasswordEncoderSHA256 passwordEncoderSHA256 = new PasswordEncoderSHA256();
+
+        String pass = "1sdfa";
+
+        assertThat("a782cfdce831aa7278230dbf51fbc341c3258f5ba79aec0c62ebb2246eae09ce").isEqualTo(passwordEncoderSHA256.encode(pass));
+    }
+
+    @Test
+    @DisplayName("로그인 아이디 중복확인")
+    void DuplicationLoginCheck(){
+        boolean check = userService.DuplicationLoginIDCheck("test");
+
+        assertThat(check).isFalse();
     }
 }
