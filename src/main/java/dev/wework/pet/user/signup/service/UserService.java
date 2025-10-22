@@ -4,10 +4,7 @@ import dev.wework.pet.user.configure.validation.Validation;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
-import dev.wework.pet.user.signup.exception.DuplicationLoginID;
-import dev.wework.pet.user.signup.exception.NotMatchClassficationException;
-import dev.wework.pet.user.signup.exception.PasswordEncodeException;
-import dev.wework.pet.user.signup.exception.ValidationFaliurePassword;
+import dev.wework.pet.user.signup.exception.*;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +36,10 @@ public class UserService {
        return Validation.isValidPassword(password);
     }
 
+    public boolean ValidationPhnumCheck(String phnum) {
+        return Validation.isValidPhnum(phnum);
+    }
+
     public User signup(SignupUserRequest signupUserRequest) {
         String hashPassword;
 
@@ -50,6 +51,9 @@ public class UserService {
              hashPassword =passwordEncoding(signupUserRequest.loginID(),signupUserRequest.password());
         } else throw new ValidationFaliurePassword();
 
+        if(!ValidationPhnumCheck(signupUserRequest.phnum())){
+            throw new ValidationFaliurePhnum();
+        }
 
         User user = new User(
                 signupUserRequest.loginID(),
