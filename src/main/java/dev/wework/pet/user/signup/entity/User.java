@@ -39,8 +39,9 @@ public class User {
         this.classification = classification;
     }
 
-    public void registerMember(String sno){
-        this.member = new Member(this,sno);
+    public void registerMember(Member member){
+
+        this.member = member;
     }
 
     public void registerReviewer(String rno){
