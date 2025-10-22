@@ -23,7 +23,6 @@ public class PasswordEncoderSHA256 {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            // Handle the exception appropriately (e.g., log it, throw a RuntimeException)
             throw new PasswordEncodeException();
         }
     }
