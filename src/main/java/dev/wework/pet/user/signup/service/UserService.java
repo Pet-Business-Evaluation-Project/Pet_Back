@@ -1,11 +1,13 @@
 package dev.wework.pet.user.signup.service;
 
-import dev.wework.pet.user.configure.validation.Validation;
+import dev.wework.pet.user.signup.configure.generate.GenerateRno;
+import dev.wework.pet.user.signup.configure.validation.Validation;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.Member;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.exception.*;
+import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +16,13 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ReviewerRepository reviewerRepository;
 
-
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ReviewerRepository reviewerRepository) {
         this.userRepository = userRepository;
+        this.reviewerRepository = reviewerRepository;
     }
+
 
     public String passwordEncoding(String id,String password) {
         try {
@@ -72,7 +76,15 @@ public class UserService {
                 }
                 user.registerMember(new Member(user, sno));
             }
-            case 심사원 -> user.registerReviewer(signupUserRequest.Classfinumber());
+            case 심사원 -> {
+                String rno;
+                do {
+                    GenerateRno generator = new GenerateRno();
+                    rno = generator.createRno();
+                } while (reviewerRepository.existsByRno(rno));
+                user.registerReviewer(rno);
+            }
+
             default -> throw new NotMatchClassficationException();
         }
         return userRepository.save(user);
