@@ -40,7 +40,6 @@ public class User {
     }
 
     public void registerMember(Member member){
-
         this.member = member;
     }
 
