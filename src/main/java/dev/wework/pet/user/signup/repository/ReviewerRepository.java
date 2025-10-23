@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
-    boolean existsByRno(String rno);
+    boolean existsBySsn(String ssn);
 }

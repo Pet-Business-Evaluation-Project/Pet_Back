@@ -40,12 +40,11 @@ public class User {
     }
 
     public void registerMember(Member member){
-
         this.member = member;
     }
 
-    public void registerReviewer(String rno){
-        this.reviewer = new Reviewer(this,rno);
+    public void registerReviewer(Reviewer reviewer){
+        this.reviewer = reviewer;
     }
 
 }

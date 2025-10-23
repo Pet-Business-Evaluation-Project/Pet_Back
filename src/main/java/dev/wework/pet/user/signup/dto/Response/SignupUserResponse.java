@@ -14,7 +14,7 @@ public record SignupUserResponse(String loginID, String name, String phnum, Stri
                 .map(Member::getSno)
                 .orElseGet(() -> {
                     Reviewer reviewer = user.getReviewer();
-                    return reviewer != null ? reviewer.getRno() : null;
+                    return reviewer != null ? user.getLoginID() : null;
                 });
 
         return new SignupUserResponse(
