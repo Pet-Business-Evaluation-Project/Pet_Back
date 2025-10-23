@@ -1,5 +1,6 @@
 package dev.wework.pet.signup;
 
+import dev.wework.pet.user.signup.configure.generate.Convention;
 import dev.wework.pet.user.signup.configure.validation.Validation;
 import dev.wework.pet.user.signup.configure.generate.GenerateRno;
 import dev.wework.pet.user.signup.dto.Classification;
@@ -39,7 +40,6 @@ public class SignupTest {
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                0,
                 "imsansung",
                 "test123!",
                 "삼성전자",
@@ -68,7 +68,7 @@ public class SignupTest {
                 "테스트심사원",
                 "01012345678",
                 Classification.심사원,
-                ""
+                "0001012"
         );
 
 
@@ -140,8 +140,8 @@ public class SignupTest {
     @Test
     @DisplayName("Rno 중복 확인")
     void RnoValidate(){
-      boolean a =  reviewerRepository.existsByRno("ganglove");
-      boolean b =  reviewerRepository.existsByRno("asdfsdf");
+      boolean a =  reviewerRepository.existsBySsn("1234567");
+      boolean b =  reviewerRepository.existsBySsn("1234567");
 
       assertThat(a).isTrue();
       assertThat(b).isFalse();
@@ -156,6 +156,13 @@ public class SignupTest {
 
         assertThat(a).isTrue();
         assertThat(b).isFalse();
+    }
 
+    @Test
+    @DisplayName("주민등록번호 변환 로직 확인")
+    void ConvertSSN(){
+        String num ="1235131";
+
+        System.out.println(Convention.ConvertSSN(num));
     }
 }
