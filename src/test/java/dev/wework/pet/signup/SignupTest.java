@@ -1,10 +1,12 @@
 package dev.wework.pet.signup;
 
-import dev.wework.pet.user.configure.validation.Validation;
+import dev.wework.pet.user.signup.configure.validation.Validation;
+import dev.wework.pet.user.signup.configure.generate.GenerateRno;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
+import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import dev.wework.pet.user.signup.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +25,9 @@ public class SignupTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ReviewerRepository reviewerRepository;
 
     @Test
     @Transactional
@@ -113,6 +118,29 @@ public class SignupTest {
     void SnoValidation(){
         assertThat(Validation.isValidSno("607-86-12034")).isTrue();
         assertThat(Validation.isValidSno("107-20-59931")).isTrue();
+
+    }
+
+    @Test
+    @DisplayName("Rno 생성 확인")
+    void RnoGenerate(){
+        GenerateRno generateRno = new GenerateRno();
+
+        String code = generateRno.createRno();
+        String code1 = generateRno.createRno();
+
+        System.out.println(code);
+        System.out.println(code1);
+    }
+
+    @Test
+    @DisplayName("Rno 중복 확인")
+    void RnoValidate(){
+      boolean a =  reviewerRepository.existsByRno("ganglove");
+      boolean b =  reviewerRepository.existsByRno("asdfsdf");
+
+      assertThat(a).isTrue();
+      assertThat(b).isFalse();
 
     }
 }
