@@ -39,12 +39,13 @@ public class SignupTest {
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                "Testmember",
+                0,
+                "imsansung",
                 "test123!",
-                "테스트기업",
+                "삼성전자",
                 "01012345678",
                     Classification.기업,
-                "607-86-12034"
+                "124-81-00998"
             );
 
 
@@ -53,7 +54,7 @@ public class SignupTest {
         assertThat(user.getUser_id()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.기업);
         assertThat(user.getMember()).isNotNull();
-        assertThat(user.getMember().getSno()).isEqualTo("607-86-12034");
+        assertThat(user.getMember().getSno()).isEqualTo("124-81-00998");
     }
 
 
@@ -120,6 +121,7 @@ public class SignupTest {
     void SnoValidation(){
         assertThat(Validation.isValidSno("607-86-12034")).isTrue();
         assertThat(Validation.isValidSno("107-20-59931")).isTrue();
+        assertThat(Validation.isValidSno("124-81-00998")).isTrue();
 
     }
 
