@@ -39,7 +39,6 @@ public class SignupTest {
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                0,
                 "Testmember",
                 "test123!",
                 "테스트기업",
@@ -63,7 +62,6 @@ public class SignupTest {
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                0,
                 "testRevier",
                 "test123!",
                 "테스트심사원",
