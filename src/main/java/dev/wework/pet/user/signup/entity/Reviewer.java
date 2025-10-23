@@ -15,12 +15,12 @@ public class Reviewer {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String rno; // 심사위원 고유 번호
+    private String ssn; // 심사위원 고유 번호
 
     protected Reviewer() {}
 
-    public Reviewer(User user, String rno) {
+    public Reviewer(User user, String ssn) {
         this.user = user;
-        this.rno = rno;
+        this.ssn = ssn;
     }
 }
