@@ -7,6 +7,7 @@ import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.Member;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.exception.*;
+import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ReviewerRepository reviewerRepository;
+    private final MemberRepository memberRepository;
 
-    public UserService(UserRepository userRepository, ReviewerRepository reviewerRepository) {
+    public UserService(UserRepository userRepository, ReviewerRepository reviewerRepository, MemberRepository memberRepository) {
         this.userRepository = userRepository;
         this.reviewerRepository = reviewerRepository;
+        this.memberRepository = memberRepository;
     }
 
 
@@ -49,15 +52,15 @@ public class UserService {
         String hashPassword;
 
         if(DuplicationLoginIDCheck(signupUserRequest.loginID())){
-            throw new DuplicationLoginID();
+            throw new DuplicationLoginIDException();
         }
 
         if(ValidationPasswordCheck(signupUserRequest.password())){
              hashPassword =passwordEncoding(signupUserRequest.loginID(),signupUserRequest.password());
-        } else throw new ValidationFaliurePassword();
+        } else throw new ValidationFaliurePasswordException();
 
         if(!ValidationPhnumCheck(signupUserRequest.phnum())){
-            throw new ValidationFaliurePhnum();
+            throw new ValidationFaliurePhnumException();
         }
 
         User user = new User(
@@ -72,7 +75,11 @@ public class UserService {
             case 기업 -> {
                 String sno = signupUserRequest.Classfinumber();
                 if (!Validation.isValidSno(sno)){
-                    throw new ValidationFaliureSno();
+                    throw new ValidationFaliureSnoException();
+                }
+
+                if(memberRepository.existsBySno(sno)){
+                    throw new DuplicationSnoException();
                 }
                 user.registerMember(new Member(user, sno));
             }
