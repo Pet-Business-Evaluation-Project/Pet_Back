@@ -63,7 +63,6 @@ public class SignupTest {
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                0,
                 "testRevier",
                 "test123!",
                 "테스트심사원",
