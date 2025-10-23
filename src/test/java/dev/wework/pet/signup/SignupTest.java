@@ -6,6 +6,7 @@ import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
+import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import dev.wework.pet.user.signup.service.UserService;
@@ -28,6 +29,10 @@ public class SignupTest {
 
     @Autowired
     private ReviewerRepository reviewerRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
 
     @Test
    // @Transactional
@@ -140,6 +145,17 @@ public class SignupTest {
 
       assertThat(a).isTrue();
       assertThat(b).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("Sno 중복 확인")
+    void SnoValidate(){
+        boolean a =  memberRepository.existsBySno("607-86-12034");
+        boolean b =  memberRepository.existsBySno("107-20-59931");
+
+        assertThat(a).isTrue();
+        assertThat(b).isFalse();
 
     }
 }
