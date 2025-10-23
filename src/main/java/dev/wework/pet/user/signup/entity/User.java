@@ -44,8 +44,8 @@ public class User {
         this.member = member;
     }
 
-    public void registerReviewer(String rno){
-        this.reviewer = new Reviewer(this,rno);
+    public void registerReviewer(Reviewer reviewer){
+        this.reviewer = reviewer;
     }
 
 }
