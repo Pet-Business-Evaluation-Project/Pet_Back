@@ -1,10 +1,13 @@
 package dev.wework.pet.signup;
 
-import dev.wework.pet.user.configure.validation.Validation;
+import dev.wework.pet.user.signup.configure.validation.Validation;
+import dev.wework.pet.user.signup.configure.generate.GenerateRno;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
 import dev.wework.pet.user.signup.entity.User;
+import dev.wework.pet.user.signup.repository.MemberRepository;
+import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import dev.wework.pet.user.signup.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -24,18 +27,25 @@ public class SignupTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ReviewerRepository reviewerRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+
     @Test
-    @Transactional
+   // @Transactional
     @DisplayName("기업회원_회원가입_성공")
     void memberSuccess(){
         SignupUserRequest request = new SignupUserRequest(
                 0,
-                "gangho",
-                "inter612##",
-                "강호",
+                "Testmember",
+                "test123!",
+                "테스트기업",
                 "01012345678",
                     Classification.기업,
-                "4321-4321"
+                "607-86-12034"
             );
 
 
@@ -44,22 +54,22 @@ public class SignupTest {
         assertThat(user.getUser_id()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.기업);
         assertThat(user.getMember()).isNotNull();
-        assertThat(user.getMember().getSno()).isEqualTo("4321-4321");
+        assertThat(user.getMember().getSno()).isEqualTo("607-86-12034");
     }
 
 
     @Test
-    @Transactional
+   // @Transactional
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
                 0,
-                "jueon",
-                "ganholove",
-                "주은",
+                "testRevier",
+                "test123!",
+                "테스트심사원",
                 "01012345678",
                 Classification.심사원,
-                "ganglove"
+                ""
         );
 
 
@@ -68,7 +78,6 @@ public class SignupTest {
         assertThat(user.getUser_id()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.심사원);
         assertThat(user.getReviewer()).isNotNull();
-        assertThat(user.getReviewer().getRno()).isEqualTo("r123");
     }
 
     @Test
@@ -113,6 +122,40 @@ public class SignupTest {
     void SnoValidation(){
         assertThat(Validation.isValidSno("607-86-12034")).isTrue();
         assertThat(Validation.isValidSno("107-20-59931")).isTrue();
+
+    }
+
+    @Test
+    @DisplayName("Rno 생성 확인")
+    void RnoGenerate(){
+        GenerateRno generateRno = new GenerateRno();
+
+        String code = generateRno.createRno();
+        String code1 = generateRno.createRno();
+
+        System.out.println(code);
+        System.out.println(code1);
+    }
+
+    @Test
+    @DisplayName("Rno 중복 확인")
+    void RnoValidate(){
+      boolean a =  reviewerRepository.existsByRno("ganglove");
+      boolean b =  reviewerRepository.existsByRno("asdfsdf");
+
+      assertThat(a).isTrue();
+      assertThat(b).isFalse();
+
+    }
+
+    @Test
+    @DisplayName("Sno 중복 확인")
+    void SnoValidate(){
+        boolean a =  memberRepository.existsBySno("607-86-12034");
+        boolean b =  memberRepository.existsBySno("107-20-59931");
+
+        assertThat(a).isTrue();
+        assertThat(b).isFalse();
 
     }
 }

@@ -1,4 +1,4 @@
-package dev.wework.pet.user.configure.validation;
+package dev.wework.pet.user.signup.configure.validation;
 
 public class Validation {
 
