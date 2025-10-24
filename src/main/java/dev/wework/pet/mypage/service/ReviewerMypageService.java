@@ -1,6 +1,8 @@
 package dev.wework.pet.mypage.service;
 
-import dev.wework.pet.exception.NotExistMyPageException;
+import dev.wework.pet.exception.NotExistReviewerGradeException;
+import dev.wework.pet.exception.NotExistReviewerIdException;
+import dev.wework.pet.exception.NotExistUserIdException;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
 import dev.wework.pet.user.signup.dto.Reviewergrade;
@@ -27,9 +29,9 @@ public class ReviewerMypageService {
 
     public ReviewerMyPageResponse ReviewerMypageInfo(ReviewerMyPageRequest request) {
 
-        User user = userRepository.findByUserId(request.userId()).orElseThrow(() -> new RuntimeException("id가 없습니다"));
-        Reviewer reviewer = reviewerRepository.findByUserUserId(user.getUserId()).orElseThrow(() -> new RuntimeException("심사원 정보가 없습니다"));
-        Grade grade = gradeRepository.findByReviewerReviewerId(reviewer.getReviewerId()).orElseThrow(() -> new RuntimeException("등급이 존재하지 않습니다"));
+        User user = userRepository.findByUserId(request.userId()).orElseThrow(() -> new NotExistUserIdException());
+        Reviewer reviewer = reviewerRepository.findByUserUserId(user.getUserId()).orElseThrow(() -> new NotExistReviewerIdException());
+        Grade grade = gradeRepository.findByReviewerReviewerId(reviewer.getReviewerId()).orElseThrow(() -> new NotExistReviewerGradeException());
 
         String UserName = user.getName();
         String LoginId = user.getLoginID();
