@@ -57,9 +57,11 @@ public class MypageTest {
     public void ReviewerInviteTest(){
 
         ReviewerInviteRequest request = new ReviewerInviteRequest("Testmember");
-        User user = new User("eeee","eeeee","Eeeee","01098765432",Classification.심사원);
+        User user = new User("eeee","eeeee","Eeeee","01098765432", "Testmember", Classification.심사원);
+        User user2 = new User("cbk5126","eeeee","최변권","01047165126", "Testmember", Classification.심사원);
 
         userRepository.save(user);
+        userRepository.save(user2);
 
         List<ReviewerInviteResponse> invite = reviewerMypageService.ShowInviteMember(request);
 
