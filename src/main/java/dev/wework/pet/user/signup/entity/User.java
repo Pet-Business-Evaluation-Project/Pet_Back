@@ -20,6 +20,7 @@ public class User {
     private String password;
     private String name;
     private String phnum;
+    private String referralID;
     @Enumerated(EnumType.STRING)
     private Classification classification;
 
@@ -32,11 +33,12 @@ public class User {
 
     protected User() {}
 
-    public User(String loginID, String password, String name, String phnum, Classification classification) {
+    public User(String loginID, String password, String name, String phnum,String referralID, Classification classification) {
         this.loginID = loginID;
         this.password = password;
         this.name = name;
         this.phnum = phnum;
+        this.referralID = referralID;
         this.classification = classification;
     }
 
