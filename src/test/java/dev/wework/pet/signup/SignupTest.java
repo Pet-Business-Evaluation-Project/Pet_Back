@@ -51,7 +51,7 @@ public class SignupTest {
 
         User user = userService.signup(request);
 
-        assertThat(user.getUser_id()).isGreaterThan(0);
+        assertThat(user.getUserId()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.기업);
         assertThat(user.getMember()).isNotNull();
         assertThat(user.getMember().getSno()).isEqualTo("124-81-00998");
@@ -63,18 +63,18 @@ public class SignupTest {
     @DisplayName("심사원_회원가입_성공")
     void ReviewerSuccess(){
         SignupUserRequest request = new SignupUserRequest(
-                "testRevier123",
+                "testRevier123456",
                 "test123!",
-                "테스트심사원2",
+                "테스트심사원3",
                 "01012345678",
                 Classification.심사원,
-                "0101012"
+                "0112303"
         );
 
 
         User user = userService.signup(request);
 
-        assertThat(user.getUser_id()).isGreaterThan(0);
+        assertThat(user.getUserId()).isGreaterThan(0);
         assertThat(user.getClassification()).isEqualTo(Classification.심사원);
         assertThat(user.getReviewer()).isNotNull();
     }
