@@ -47,12 +47,11 @@ public class ReviewerMypageService {
 
     public List<ReviewerInviteResponse> ShowInviteMember(ReviewerInviteRequest request) {
 
-        List<ReviewerInviteResponse> InviteMember = userRepository.findByLoginId(request.LoginId())
-                .map(user -> new ReviewerInviteResponse(user.getName(),user.getPhnum())).stream().collect(Collectors.toList());
-
-        return InviteMember;
+        List<ReviewerInviteResponse> InviteMembers = userRepository.findByReferralID(request.loginID())
+                .stream().map(user -> new ReviewerInviteResponse(user.getName(), user.getPhnum())).collect(Collectors.toList());
 
 
+        return InviteMembers;
     }
 
 }
