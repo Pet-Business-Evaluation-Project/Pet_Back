@@ -10,6 +10,7 @@ public class Grade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "grade_id")
     private int gradeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,5 +27,14 @@ public class Grade {
         this.reviewer = reviewer;
         this.reviewerGrade = reviewerGrade;
     }
+
+    public Grade(int gradeId, Reviewer reviewer, Reviewergrade reviewerGrade){
+        this.gradeId = gradeId;
+        this.reviewer = reviewer;
+        this.reviewerGrade = reviewerGrade;
+    }
+
+
+
 }
 
