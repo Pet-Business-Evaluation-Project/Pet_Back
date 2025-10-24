@@ -1,6 +1,8 @@
 package dev.wework.pet.mypage;
 
+import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
+import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
 import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.dto.Classification;
@@ -16,6 +18,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
 
 @SpringBootTest
 public class MypageTest {
@@ -44,6 +48,26 @@ public class MypageTest {
         Reviewergrade reviewergrade = response.reviewerGrade();
 
         System.out.println("회원님의 ID : " + loginId + " 회원의 이름은 : " + userName + " 회원의 등급은 : " + reviewergrade);
+
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("심사원 초대한 인원 목록")
+    public void ReviewerInviteTest(){
+
+        ReviewerInviteRequest request = new ReviewerInviteRequest("Testmember");
+        User user = new User("eeee","eeeee","Eeeee","01098765432", "Testmember", Classification.심사원);
+        User user2 = new User("cbk5126","eeeee","최변권","01047165126", "Testmember", Classification.심사원);
+
+        userRepository.save(user);
+        userRepository.save(user2);
+
+        List<ReviewerInviteResponse> invite = reviewerMypageService.ShowInviteMember(request);
+
+        for (ReviewerInviteResponse inviteResponse : invite) {
+            System.out.println(inviteResponse.toString());
+        }
 
     }
 }
