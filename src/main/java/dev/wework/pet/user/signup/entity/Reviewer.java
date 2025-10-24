@@ -12,7 +12,8 @@ public class Reviewer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int reviewer_id;
+    @Column(name = "reviewer_id")
+    private int reviewerId;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -26,6 +27,12 @@ public class Reviewer {
     protected Reviewer() {}
 
     public Reviewer(User user, String ssn) {
+        this.user = user;
+        this.ssn = ssn;
+    }
+
+    public Reviewer(int reviewerId, User user, String ssn) {
+        this.reviewerId = reviewerId;
         this.user = user;
         this.ssn = ssn;
     }
