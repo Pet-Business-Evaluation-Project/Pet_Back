@@ -6,7 +6,7 @@ import dev.wework.pet.user.signup.entity.User;
 
 import java.util.Optional;
 
-public record SignupUserResponse(String loginID, String name, String phnum, String classification, String num) {
+public record SignupUserResponse(String loginID, String name, String phnum,String referralID, String classification, String num) {
 
 
     public static SignupUserResponse convertEntity(User user) {
@@ -21,6 +21,7 @@ public record SignupUserResponse(String loginID, String name, String phnum, Stri
                 user.getLoginID(),
                 user.getName(),
                 user.getPhnum(),
+                user.getReferralID(),
                 user.getClassification().name(),
                 num
         );

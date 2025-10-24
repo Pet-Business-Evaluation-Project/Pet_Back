@@ -44,6 +44,8 @@ public class SignupTest {
                 "test123!",
                 "삼성전자",
                 "01012345678",
+                    ""
+                    ,
                     Classification.기업,
                 "124-81-00998"
             );
@@ -67,6 +69,7 @@ public class SignupTest {
                 "test123!",
                 "테스트심사원3",
                 "01012345678",
+                "",
                 Classification.심사원,
                 "0112303"
         );
