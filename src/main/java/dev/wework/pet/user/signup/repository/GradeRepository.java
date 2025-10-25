@@ -4,6 +4,7 @@ import dev.wework.pet.user.signup.entity.Grade;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface GradeRepository extends JpaRepository<Grade, Integer> {
