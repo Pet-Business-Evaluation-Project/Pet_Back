@@ -3,6 +3,7 @@ package dev.wework.pet.user.signup.entity;
 import dev.wework.pet.user.signup.dto.Reviewergrade;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -34,7 +35,9 @@ public class Grade {
         this.reviewerGrade = reviewerGrade;
     }
 
-
+    public void setReviewerGrade (Reviewergrade reviewerGrade){
+        this.reviewerGrade = reviewerGrade;
+    }
 
 }
 
