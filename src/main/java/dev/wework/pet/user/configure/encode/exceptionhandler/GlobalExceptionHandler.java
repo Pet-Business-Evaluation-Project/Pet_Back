@@ -2,6 +2,9 @@ package dev.wework.pet.user.configure.encode.exceptionhandler;
 
 // GlobalExceptionHandler.java 파일 생성
 
+import dev.wework.pet.exception.NotExistReviewerGradeException;
+import dev.wework.pet.exception.NotExistReviewerIdException;
+import dev.wework.pet.exception.NotExistUserIdException;
 import dev.wework.pet.user.signup.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             DuplicationLoginIDException.class,
             DuplicationSsnException.class,
-            DuplicationSnoException.class
+            DuplicationSnoException.class,
     })
     public ResponseEntity<Map<String, String>> handleDuplicationExceptions(RuntimeException ex) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -64,8 +67,21 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
 
+    // 4. 요청한 리소스가 서버에 존재하지 않을 때 (HTTP 404 Not Found)
+    @ExceptionHandler({NotExistUserIdException.class,
+                       NotExistReviewerGradeException.class,
+                       NotExistReviewerIdException.class}) // 비밀번호 인코딩 실패 등
+    public ResponseEntity<Map<String, String>> handleNotFoundExceptions(RuntimeException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("message", ex.getMessage());
 
-    // 4. 나머지 모든 예상치 못한 예외 처리
+        // 서버의 예상치 못한 오류에 대해 500 Internal Server Error를 사용합니다.
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
+    }
+
+    // 5. 나머지 모든 예상치 못한 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         Map<String, String> errorResponse = new HashMap<>();

@@ -1,9 +1,12 @@
 package dev.wework.pet.mypage;
 
 import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
+import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
 import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
+import dev.wework.pet.mypage.dto.Response.ReviewerListResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
+import dev.wework.pet.mypage.service.AdminMypageService;
 import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Reviewergrade;
@@ -32,6 +35,8 @@ public class MypageTest {
     private ReviewerRepository reviewerRepository;
     @Autowired
     private ReviewerMypageService reviewerMypageService;
+    @Autowired
+    private AdminMypageService adminMypageService;
 
     @Test
     @Transactional
@@ -67,6 +72,21 @@ public class MypageTest {
 
         for (ReviewerInviteResponse inviteResponse : invite) {
             System.out.println(inviteResponse.toString());
+        }
+
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("관리자가 마이페이지 심사원 목록")
+    public void ReviewerListTest(){
+
+        ReviewerListRequest request = new ReviewerListRequest(Classification.관리자);
+
+        List<ReviewerListResponse> response = adminMypageService.getReviewerList(request);
+
+        for (ReviewerListResponse reviewerListResponse : response) {
+            System.out.println(reviewerListResponse.toString());
         }
 
     }
