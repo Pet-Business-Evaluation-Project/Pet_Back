@@ -1,4 +1,6 @@
 package dev.wework.pet.mypage.dto.Response;
 
-public record ReviewerInviteResponse (String name, String phnum){
+import dev.wework.pet.user.signup.dto.Reviewergrade;
+
+public record ReviewerInviteResponse (String name, String phnum, Reviewergrade reviewerGrade) {
 }
