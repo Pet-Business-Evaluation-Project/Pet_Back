@@ -15,8 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
+    private final UserService userService;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<SignupUserResponse> Signup(@RequestBody SignupUserRequest signupUserRequest) {
 
