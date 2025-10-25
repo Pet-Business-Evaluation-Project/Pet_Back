@@ -95,7 +95,7 @@ public class MypageTest {
     @Test
     @DisplayName("심사원 등급 업데이트")
     public void ReviewerGradeUpdateTest(){
-        GradeUpdateRequest.GradeUpdateItem item = new GradeUpdateRequest.GradeUpdateItem(33, Reviewergrade.심사원보);
+        GradeUpdateRequest.GradeUpdateItem item = new GradeUpdateRequest.GradeUpdateItem(33, Reviewergrade.심사위원);
         List<GradeUpdateRequest.GradeUpdateItem> items = List.of(item);
         GradeUpdateRequest request = new GradeUpdateRequest(items);
         adminMypageService.updateReviewerGrade(request);
