@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface GradeRepository extends JpaRepository<Grade, Integer> {
 
     Optional<Grade> findByReviewerReviewerId(int reviewer_id);
+
+    List<Grade> findAllByReviewerReviewerIdIn(List<Integer> reviewerIds);
 }

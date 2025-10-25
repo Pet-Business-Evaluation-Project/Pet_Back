@@ -16,4 +16,6 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
 
     @Query("SELECT r From Reviewer r " + "JOIN FETCH r.user u " + "LEFT JOIN FETCH r.grades g ")
     List<Reviewer> findAllReviewersWithDetails();
+
+    List<Reviewer> findAllByUserUserIdIn(List<Integer> userIds);
 }
