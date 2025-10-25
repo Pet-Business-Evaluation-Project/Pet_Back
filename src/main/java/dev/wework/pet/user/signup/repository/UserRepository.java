@@ -13,4 +13,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByLoginIDIgnoreCase(String loginID);
 
     Optional<User> findByUserId(int userId);
+
+
+    // 로그인 ID를 갖는 객체 반환
+    User findByLoginID(String loginID);
 }
