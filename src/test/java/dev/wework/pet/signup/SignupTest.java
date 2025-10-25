@@ -164,7 +164,7 @@ public class SignupTest {
     @Test
     @DisplayName("주민등록번호 변환 로직 확인")
     void ConvertSSN(){
-        String num ="1235131";
+        String num ="123    5131";
 
         System.out.println(Convention.ConvertSSN(num));
     }
