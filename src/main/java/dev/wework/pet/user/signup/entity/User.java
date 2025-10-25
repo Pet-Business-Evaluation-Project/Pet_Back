@@ -25,6 +25,7 @@ public class User {
     private Classification classification;
 
 
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Member member;
 
