@@ -69,6 +69,18 @@ public class MypageTest {
         userRepository.save(user);
         userRepository.save(user2);
 
+        Reviewer reviewer = new Reviewer(user, "1234561");
+        Reviewer reviewer2 = new Reviewer(user2, "1234562");
+
+        reviewerRepository.save(reviewer);
+        reviewerRepository.save(reviewer2);
+
+        Grade grade = new Grade(reviewer, Reviewergrade.심사위원);
+        Grade grade2 = new Grade(reviewer2, Reviewergrade.수석심사위원);
+
+        gradeRepository.save(grade);
+        gradeRepository.save(grade2);
+
         List<ReviewerInviteResponse> invite = reviewerMypageService.ShowInviteMember(request);
 
         for (ReviewerInviteResponse inviteResponse : invite) {
