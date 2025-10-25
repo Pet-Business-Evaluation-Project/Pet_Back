@@ -16,6 +16,9 @@ import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class UserService {
@@ -108,6 +111,12 @@ public class UserService {
             default -> throw new NotMatchClassficationException();
         }
         return userRepository.save(user);
+    }
+
+    public List<String> getLoginID(){
+        List<User> users = userRepository.findAll();
+           List<String> LoginIDList = users.stream().map(User::getLoginID).collect(Collectors.toList());
+        return LoginIDList;
     }
 
 }
