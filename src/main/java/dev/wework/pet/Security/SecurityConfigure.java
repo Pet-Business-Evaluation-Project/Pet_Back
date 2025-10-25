@@ -22,7 +22,7 @@ public class SecurityConfigure {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/logout", "/user/signup").permitAll() // 로그인, 회원가입 허용
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .maximumSessions(1) // 필요에 따라
