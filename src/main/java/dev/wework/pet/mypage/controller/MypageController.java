@@ -1,5 +1,6 @@
 package dev.wework.pet.mypage.controller;
 
+import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
@@ -9,6 +10,7 @@ import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
 import dev.wework.pet.mypage.service.AdminMypageService;
 import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.service.UserService;
+import org.hibernate.annotations.WhereJoinTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,6 +54,14 @@ public class MypageController {
         List<ReviewerListResponse> reviewers = adminMypageService.getReviewerList(request);
 
         return reviewers;
+    }
+
+    @PutMapping("/admin/update")
+    public List<String> GradeUpdate(@RequestBody GradeUpdateRequest request){
+
+        List<String> result = adminMypageService.updateReviewerGrade(request);
+
+        return result;
     }
 
 }
