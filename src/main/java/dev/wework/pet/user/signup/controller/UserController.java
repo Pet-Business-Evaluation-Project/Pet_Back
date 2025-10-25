@@ -6,10 +6,9 @@ import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -28,5 +27,12 @@ public class UserController {
         User user = userService.signup(signupUserRequest);
 
         return ResponseEntity.ok(SignupUserResponse.convertEntity(user));
+    }
+
+    @GetMapping("/loginInfo")
+    public ResponseEntity<List<String>> LoginInfo() {
+        List<String> LoginInfo = userService.getLoginID();
+
+        return ResponseEntity.ok(LoginInfo);
     }
 }
