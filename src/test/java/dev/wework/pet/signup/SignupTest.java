@@ -1,5 +1,7 @@
 package dev.wework.pet.signup;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.wework.pet.user.signup.configure.generate.Convention;
 import dev.wework.pet.user.signup.configure.validation.Validation;
 import dev.wework.pet.user.signup.configure.generate.GenerateRno;
@@ -16,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -167,5 +171,15 @@ public class SignupTest {
         String num ="123    5131";
 
         System.out.println(Convention.ConvertSSN(num));
+    }
+
+    @Test
+    @DisplayName("정보 가져오기")
+    void FindaAllLoginID(){
+
+        List<String> users = userService.getLoginID();
+
+        System.out.println(users);
+
     }
 }
