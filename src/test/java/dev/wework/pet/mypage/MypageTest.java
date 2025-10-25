@@ -44,7 +44,7 @@ public class MypageTest {
     @DisplayName("심사원 마이페이지 정보")
     public void reviewerMypageTest(){
 
-        ReviewerMyPageRequest user = new ReviewerMyPageRequest(5);
+        ReviewerMyPageRequest user = new ReviewerMyPageRequest(57);
 
 
         ReviewerMyPageResponse response = reviewerMypageService.ReviewerMypageInfo(user);
