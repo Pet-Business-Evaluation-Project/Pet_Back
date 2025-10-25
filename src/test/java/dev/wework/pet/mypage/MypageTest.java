@@ -1,5 +1,6 @@
 package dev.wework.pet.mypage;
 
+import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
@@ -88,6 +89,16 @@ public class MypageTest {
         for (ReviewerListResponse reviewerListResponse : response) {
             System.out.println(reviewerListResponse.toString());
         }
+
+    }
+
+    @Test
+    @DisplayName("심사원 등급 업데이트")
+    public void ReviewerGradeUpdateTest(){
+        GradeUpdateRequest.GradeUpdateItem item = new GradeUpdateRequest.GradeUpdateItem(33, Reviewergrade.심사원보);
+        List<GradeUpdateRequest.GradeUpdateItem> items = List.of(item);
+        GradeUpdateRequest request = new GradeUpdateRequest(items);
+        adminMypageService.updateReviewerGrade(request);
 
     }
 }
