@@ -49,6 +49,8 @@ public class AdminMypageService {
                             .orElse("심사원이 존재하지 않습니다.");
 
                     return new ReviewerListResponse(
+                            reviewer.getUser().getUserId(),
+                            reviewer.getReviewerId(),
                             reviewer.getUser().getName(),
                             reviewer.getUser().getLoginID(),
                             reviewer.getUser().getPhnum(),
