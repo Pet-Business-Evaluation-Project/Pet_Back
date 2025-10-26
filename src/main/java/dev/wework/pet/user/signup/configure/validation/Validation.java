@@ -2,8 +2,10 @@ package dev.wework.pet.user.signup.configure.validation;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
 
 public class Validation {
 
@@ -45,13 +47,21 @@ public class Validation {
             return false;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd")
+        // ⭐ appendValueReduced로 기준 연도 설정
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendValueReduced(
+                        ChronoField.YEAR,
+                        2,
+                        2,
+                        1900
+                )
+                .appendPattern("MMdd")
+                .toFormatter()
                 .withResolverStyle(ResolverStyle.STRICT);
 
         try {
             LocalDate date = LocalDate.parse(front, formatter);
             LocalDate now = LocalDate.now();
-
 
             if (date.isAfter(now)) {
                 return false;
