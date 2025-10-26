@@ -3,6 +3,7 @@ package dev.wework.pet.user.signup.configure.validation;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public class Validation {
 
@@ -26,7 +27,7 @@ public class Validation {
         if (s.length() != 10) return false;
         int[] d = new int[10];
         for (int i = 0; i < 10; i++) d[i] = s.charAt(i) - '0';
-        int[] weights = {1,3,7,1,3,7,1,3,5};
+        int[] weights = {1, 3, 7, 1, 3, 7, 1, 3, 5};
         int sum = 0;
         for (int i = 0; i < 9; i++) sum += d[i] * weights[i];
         sum += (d[8] * 5) / 10;
@@ -38,17 +39,25 @@ public class Validation {
         String ssnREX = "\\d{7}";
         return input.matches(ssnREX);
     }
+
     public static boolean isValidFrontSSN(String front) {
-        // 앞자리 6자리 숫자인지 확인
         if (front == null || !front.matches("^\\d{6}$")) {
             return false;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd")
+                .withResolverStyle(ResolverStyle.STRICT);
+
         try {
             LocalDate date = LocalDate.parse(front, formatter);
+            LocalDate now = LocalDate.now();
 
-            if (date.isAfter(LocalDate.now())) {
+
+            if (date.isAfter(now)) {
+                return false;
+            }
+
+            if (date.isBefore(LocalDate.of(1840, 1, 1))) {
                 return false;
             }
 
@@ -58,5 +67,4 @@ public class Validation {
 
         return true;
     }
-
 }
