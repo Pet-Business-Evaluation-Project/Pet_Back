@@ -60,4 +60,14 @@ public class User {
         this.reviewer = reviewer;
     }
 
+    public void setLoginID(String loginID){
+        this.loginID = loginID;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setPhnum(String phnum){
+        this.phnum = phnum;
+    }
+
 }
