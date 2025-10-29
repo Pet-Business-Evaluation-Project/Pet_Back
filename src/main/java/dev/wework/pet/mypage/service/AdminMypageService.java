@@ -1,12 +1,16 @@
 package dev.wework.pet.mypage.service;
 
 import dev.wework.pet.exception.NotExistReviewerIdException;
+import dev.wework.pet.exception.NotExistUserIdException;
+import dev.wework.pet.mypage.dto.Request.EditInfoRequest;
 import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
+import dev.wework.pet.mypage.dto.Response.EditInfoResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerListResponse;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.entity.Grade;
 import dev.wework.pet.user.signup.entity.Reviewer;
+import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.GradeRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
@@ -78,6 +82,17 @@ public class AdminMypageService {
             result.add("Updated reviewer grade " + grade.getReviewerGrade());
         }
         return result;
+    }
+
+    public EditInfoResponse editReviewerInfo(EditInfoRequest request){
+        User user = userRepository.findByUserId(request.userId())
+                .orElseThrow(() -> new NotExistUserIdException());
+
+        user.setName(request.name());
+        user.setPhnum(request.phnum());
+        userRepository.save(user);
+
+        return new EditInfoResponse(request.userId(), user.getName(), user.getPhnum());
     }
 
 }
