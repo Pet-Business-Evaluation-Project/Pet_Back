@@ -1,9 +1,6 @@
 package dev.wework.pet.mypage;
 
-import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
+import dev.wework.pet.mypage.dto.Request.*;
 import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerListResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
@@ -112,5 +109,14 @@ public class MypageTest {
         GradeUpdateRequest request = new GradeUpdateRequest(items);
         adminMypageService.updateReviewerGrade(request);
 
+    }
+
+    @Test
+    @DisplayName("마이페이지 개인정보 수정")
+    public void EditInfoTest(){
+        EditInfoRequest request = new EditInfoRequest(31, "울산덤벨도둑", "01012341234");
+        adminMypageService.editReviewerInfo(request);
+
+        System.out.println("유저 ID의 정보가  " + " 이름 : " + request.name() + " 전화번호 : " + request.phnum() + "로 변경되었습니다.");
     }
 }

@@ -1,9 +1,7 @@
 package dev.wework.pet.mypage.controller;
 
-import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerListRequest;
-import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
+import dev.wework.pet.mypage.dto.Request.*;
+import dev.wework.pet.mypage.dto.Response.EditInfoResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerListResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
@@ -62,6 +60,15 @@ public class MypageController {
         List<String> result = adminMypageService.updateReviewerGrade(request);
 
         return result;
+    }
+
+    @PutMapping("/reviewer/infoUpdate")
+    public EditInfoResponse ReviewerInfoUpdate(@RequestBody EditInfoRequest request){
+
+        EditInfoResponse response = adminMypageService.editReviewerInfo(request);
+
+        return response;
+
     }
 
 }
