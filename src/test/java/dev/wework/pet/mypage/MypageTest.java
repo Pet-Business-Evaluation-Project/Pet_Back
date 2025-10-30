@@ -115,7 +115,7 @@ public class MypageTest {
     @DisplayName("마이페이지 개인정보 수정")
     public void EditInfoTest(){
         EditInfoRequest request = new EditInfoRequest(31, "울산덤벨도둑", "01012341234");
-        adminMypageService.editReviewerInfo(request);
+        reviewerMypageService.editReviewerInfo(request);
 
         System.out.println("유저 ID의 정보가  " + " 이름 : " + request.name() + " 전화번호 : " + request.phnum() + "로 변경되었습니다.");
     }
