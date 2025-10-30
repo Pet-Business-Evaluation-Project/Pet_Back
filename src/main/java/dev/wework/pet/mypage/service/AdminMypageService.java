@@ -84,15 +84,6 @@ public class AdminMypageService {
         return result;
     }
 
-    public EditInfoResponse editReviewerInfo(EditInfoRequest request){
-        User user = userRepository.findByUserId(request.userId())
-                .orElseThrow(() -> new NotExistUserIdException());
 
-        user.setName(request.name());
-        user.setPhnum(request.phnum());
-        userRepository.save(user);
-
-        return new EditInfoResponse(request.userId(), user.getName(), user.getPhnum());
-    }
 
 }
