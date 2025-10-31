@@ -3,8 +3,10 @@ package dev.wework.pet.mypage.service;
 import dev.wework.pet.exception.NotExistReviewerGradeException;
 import dev.wework.pet.exception.NotExistReviewerIdException;
 import dev.wework.pet.exception.NotExistUserIdException;
+import dev.wework.pet.mypage.dto.Request.EditInfoRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerInviteRequest;
 import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
+import dev.wework.pet.mypage.dto.Response.EditInfoResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
 import dev.wework.pet.user.signup.dto.Classification;
@@ -45,8 +47,9 @@ public class ReviewerMypageService {
 
         String UserName = user.getName();
         String LoginId = user.getLoginID();
+        String Phnum = user.getPhnum();
         Reviewergrade reviewergrade = grade.getReviewerGrade();
-        return new ReviewerMyPageResponse( LoginId, UserName, reviewergrade);
+        return new ReviewerMyPageResponse( LoginId, UserName, Phnum, reviewergrade);
     }
 
     public List<ReviewerInviteResponse> ShowInviteMember(ReviewerInviteRequest request) {
@@ -87,6 +90,17 @@ public class ReviewerMypageService {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    public EditInfoResponse editReviewerInfo(EditInfoRequest request){
+        User user = userRepository.findByUserId(request.userId())
+                .orElseThrow(() -> new NotExistUserIdException());
+
+        user.setName(request.name());
+        user.setPhnum(request.phnum());
+        userRepository.save(user);
+
+        return new EditInfoResponse(request.userId(), user.getName(), user.getPhnum());
     }
 
 }

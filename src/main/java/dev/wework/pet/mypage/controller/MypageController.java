@@ -65,7 +65,7 @@ public class MypageController {
     @PutMapping("/reviewer/infoUpdate")
     public EditInfoResponse ReviewerInfoUpdate(@RequestBody EditInfoRequest request){
 
-        EditInfoResponse response = adminMypageService.editReviewerInfo(request);
+        EditInfoResponse response = reviewerMypageService.editReviewerInfo(request);
 
         return response;
 
