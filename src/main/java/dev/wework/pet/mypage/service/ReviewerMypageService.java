@@ -47,8 +47,9 @@ public class ReviewerMypageService {
 
         String UserName = user.getName();
         String LoginId = user.getLoginID();
+        String Phnum = user.getPhnum();
         Reviewergrade reviewergrade = grade.getReviewerGrade();
-        return new ReviewerMyPageResponse( LoginId, UserName, reviewergrade);
+        return new ReviewerMyPageResponse( LoginId, UserName, Phnum, reviewergrade);
     }
 
     public List<ReviewerInviteResponse> ShowInviteMember(ReviewerInviteRequest request) {
