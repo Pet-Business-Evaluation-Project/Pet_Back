@@ -18,4 +18,6 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
     List<Reviewer> findAllReviewersWithDetails();
 
     List<Reviewer> findAllByUserUserIdIn(List<Integer> userIds);
+
+    Optional<Reviewer> findBySsn(String ssn);
 }
