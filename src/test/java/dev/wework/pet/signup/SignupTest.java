@@ -7,7 +7,7 @@ import dev.wework.pet.user.signup.configure.validation.Validation;
 import dev.wework.pet.user.signup.configure.generate.GenerateRno;
 import dev.wework.pet.user.signup.dto.Classification;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
-import dev.wework.pet.user.configure.encode.PasswordEncoderSHA256;
+import dev.wework.pet.user.configure.encode.PasswordEncoderBCrypt;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
@@ -89,7 +89,7 @@ public class SignupTest {
     @Test
     @DisplayName("패스워드 인코더 작동확인")
     void EncoderCheck(){
-        PasswordEncoderSHA256 passwordEncoderSHA256 = new PasswordEncoderSHA256();
+        PasswordEncoderBCrypt passwordEncoderSHA256 = new PasswordEncoderBCrypt();
 
         String pass = "1sdfa";
 
