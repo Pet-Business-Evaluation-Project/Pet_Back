@@ -11,5 +11,5 @@ public interface GradeRepository extends JpaRepository<Grade, Integer> {
 
     Optional<Grade> findByReviewerReviewerId(int reviewer_id);
 
-    List<Grade> findAllByReviewerReviewerIdIn(List<Integer> reviewerIds);
+    List<Grade> findAllByReviewerId(int reviewer_id);
 }
