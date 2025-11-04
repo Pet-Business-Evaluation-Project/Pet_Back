@@ -69,5 +69,6 @@ public class User {
     public void setPhnum(String phnum){
         this.phnum = phnum;
     }
+    public void setPassword(String password){this.password = password;}
 
 }
