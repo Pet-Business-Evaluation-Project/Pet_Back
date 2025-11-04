@@ -1,7 +1,9 @@
 package dev.wework.pet.FindPassword;
 
 
+import dev.wework.pet.user.findpassword.dto.Request.PasswordChangeRequest;
 import dev.wework.pet.user.findpassword.dto.Request.UserCheckRequest;
+import dev.wework.pet.user.findpassword.dto.Response.PasswordChangeResponse;
 import dev.wework.pet.user.findpassword.dto.Response.UserCheckResponse;
 import dev.wework.pet.user.findpassword.service.FindPasswordService;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +23,14 @@ public class FindPasswordTest {
         UserCheckRequest request = new UserCheckRequest("fiver0320", "01063940622", "000622-3******");
         UserCheckResponse response = findPasswordService.ExistUserCheck(request);
 
+        System.out.println(response);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 테스트")
+    void ChangePasswordTest(){
+        PasswordChangeRequest request = new PasswordChangeRequest(83, "qwer123456!");
+        PasswordChangeResponse response = findPasswordService.ChangePassword(request);
         System.out.println(response);
     }
 }
