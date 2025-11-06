@@ -31,7 +31,8 @@ public class SecurityConfigure {
                 // 인증 규칙
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",      // 로그인, 회원가입
+                                "/api/auth/**",// 로그인, 회원가입
+                                "/user/**",        //  회원가입 관련 추가
                                 "/health",           // Health check
                                 "/actuator/**",      // Actuator
                                 "/error"             // 에러 페이지
