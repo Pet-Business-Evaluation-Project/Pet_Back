@@ -25,7 +25,7 @@ public class SecurityConfigure {
 
                 // 세션 관리 (Stateless)
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
 
                 // 인증 규칙
@@ -37,6 +37,8 @@ public class SecurityConfigure {
                                 "/actuator/**",      // Actuator
                                 "/error"             // 에러 페이지
                         ).permitAll()
+
+                        .requestMatchers("/mypage/**").authenticated()
 
                         .anyRequest().authenticated()
                 );
