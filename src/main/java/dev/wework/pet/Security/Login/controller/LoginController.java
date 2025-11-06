@@ -7,6 +7,10 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +38,28 @@ public class LoginController {
 
         // 세션에 사용자 정보 저장
         session.setAttribute("loginUser", loginUser);
+
+
+        // 권한 매핑
+        String role = switch (loginUser.getClassification()) {
+            case 관리자 -> "ROLE_ADMIN";
+            case 심사원 -> "ROLE_REVIEWER";
+            case 기업 -> "ROLE_COMPANY";
+            default -> "ROLE_USER";
+        };
+
+        //  인증 객체 생성
+        var authorities = List.of(new SimpleGrantedAuthority(role));
+        var authToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
+
+        // SecurityContext에 저장
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        //  세션에도 저장 (Spring Security가 참고하도록)
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        session.setAttribute("loginUser", loginUser);
+
+
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);

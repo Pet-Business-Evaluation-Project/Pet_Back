@@ -32,6 +32,7 @@ public class SecurityConfigure {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",// 로그인, 회원가입
+                                "/findpassword/**",
                                 "/user/**",        //  회원가입 관련 추가
                                 "/health",           // Health check
                                 "/actuator/**",      // Actuator
