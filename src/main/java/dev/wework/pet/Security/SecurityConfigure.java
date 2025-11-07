@@ -36,7 +36,8 @@ public class SecurityConfigure {
                                 "/user/**",        //  회원가입 관련 추가
                                 "/health",           // Health check
                                 "/actuator/**",      // Actuator
-                                "/error"             // 에러 페이지
+                                "/error",             // 에러 페이지
+                                "/community/**"       //게시판
                         ).permitAll()
 
                         .requestMatchers("/mypage/**").authenticated()
