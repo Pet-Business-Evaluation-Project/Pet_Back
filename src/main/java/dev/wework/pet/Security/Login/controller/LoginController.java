@@ -49,6 +49,7 @@ public class LoginController {
         };
 
         //  인증 객체 생성
+
         var authorities = List.of(new SimpleGrantedAuthority(role));
         var authToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
 
@@ -64,7 +65,7 @@ public class LoginController {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("userId", loginUser.getUserId());
-        response.put("loginID", loginUser.getUserId());
+        response.put("loginID", loginUser.getLoginID());
         response.put("name", loginUser.getName());
         response.put("classification", loginUser.getClassification());
         return ResponseEntity.ok(response);
