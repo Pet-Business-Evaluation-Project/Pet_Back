@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import java.util.List;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,9 +38,11 @@ public class LoginController {
             return ResponseEntity.status(401).body(response);
         }
 
+        // 세션 타임아웃 30분 설정
+        session.setMaxInactiveInterval(30 * 60); // 1800초 = 30분
+
         // 세션에 사용자 정보 저장
         session.setAttribute("loginUser", loginUser);
-
 
         // 권한 매핑
         String role = switch (loginUser.getClassification()) {
@@ -48,19 +52,18 @@ public class LoginController {
             default -> "ROLE_USER";
         };
 
-        //  인증 객체 생성
-
+        // 인증 객체 생성
         var authorities = List.of(new SimpleGrantedAuthority(role));
         var authToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
 
         // SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        //  세션에도 저장 (Spring Security가 참고하도록)
+        // 세션에도 저장
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-        session.setAttribute("loginUser", loginUser);
 
-
+        // 세션 만료 시간 계산
+        long expiresAt = System.currentTimeMillis() + (30 * 60 * 1000);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -68,11 +71,13 @@ public class LoginController {
         response.put("loginID", loginUser.getLoginID());
         response.put("name", loginUser.getName());
         response.put("classification", loginUser.getClassification());
+        response.put("expiresAt", expiresAt);
+
         return ResponseEntity.ok(response);
     }
 
     /**
-     * 현재 로그인된 사용자 정보 조회
+     * 현재 로그인된 사용자 정보 조회 + 세션 만료 시간
      */
     @GetMapping("/me")
     public ResponseEntity<?> getLoginUser(HttpSession session) {
@@ -82,11 +87,17 @@ public class LoginController {
             return ResponseEntity.status(401).body(Map.of("message", "로그인 상태가 아닙니다."));
         }
 
+        // 세션 만료 시간 계산
+        long lastAccessedTime = session.getLastAccessedTime();
+        int maxInactiveInterval = session.getMaxInactiveInterval();
+        long expiresAt = lastAccessedTime + (maxInactiveInterval * 1000L);
+
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("userId", loginUser.getUserId());
         userInfo.put("loginID", loginUser.getLoginID());
         userInfo.put("name", loginUser.getName());
         userInfo.put("classification", loginUser.getClassification());
+        userInfo.put("expiresAt", expiresAt);
 
         return ResponseEntity.ok(userInfo);
     }
