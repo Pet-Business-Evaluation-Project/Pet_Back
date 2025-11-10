@@ -7,6 +7,7 @@ import dev.wework.pet.user.findpassword.dto.Request.UserCheckRequest;
 import dev.wework.pet.user.findpassword.dto.Response.PasswordChangeResponse;
 import dev.wework.pet.user.findpassword.dto.Response.UserCheckResponse;
 import dev.wework.pet.user.findpassword.exception.NotExistLoginIDException;
+import dev.wework.pet.user.findpassword.exception.NotExistPhnumException;
 import dev.wework.pet.user.findpassword.exception.NotExistSsnException;
 import dev.wework.pet.user.findpassword.exception.NotMatchUserInfoException;
 import dev.wework.pet.user.signup.entity.Reviewer;
@@ -36,6 +37,13 @@ public class FindPasswordService {
 
         if(user == null){
             throw new NotExistLoginIDException();
+        }
+
+        String RequestPhnum = request.phnum();
+        String DBPhnum = user.getPhnum();
+
+        if (!RequestPhnum.equals(DBPhnum)){
+            throw new NotExistPhnumException();
         }
 
         Reviewer reviewer = reviewerRepository.findBySsn(request.ssn()).orElseThrow(() -> new NotExistSsnException());
