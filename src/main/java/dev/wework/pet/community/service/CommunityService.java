@@ -34,8 +34,8 @@ public class CommunityService {
             if (classification != Classification.관리자)
                 throw new RuntimeException("관리자만 공지사항을 작성할 수 있습니다.");
         } else if (communityType.equalsIgnoreCase("board")) {
-            if (classification != Classification.심사원)
-                throw new RuntimeException("심사원만 게시판에 글을 작성할 수 있습니다.");
+            if (classification != Classification.심사원 && classification != Classification.관리자)
+                throw new RuntimeException("심사원과 관리자만 게시판에 글을 작성할 수 있습니다.");
         }
 
         Community community = new Community();
