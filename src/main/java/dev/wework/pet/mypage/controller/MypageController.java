@@ -10,6 +10,7 @@ import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.service.UserService;
 import org.hibernate.annotations.WhereJoinTable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
