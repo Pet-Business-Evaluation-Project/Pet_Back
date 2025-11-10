@@ -10,7 +10,9 @@ import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.service.UserService;
 import org.hibernate.annotations.WhereJoinTable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -69,6 +71,20 @@ public class MypageController {
 
         return response;
 
+    }
+
+    @PostMapping("/reviewer/uploadProfile")
+    public ResponseEntity<String> uploadProfileImage(
+            @RequestParam("userId") int userId,
+            @RequestParam("file") MultipartFile file) {
+
+        try {
+            String imageUrl = reviewerMypageService.uploadProfileImage(userId, file);
+            return ResponseEntity.ok(imageUrl);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("이미지 업로드 실패: " + e.getMessage());
+        }
     }
 
 }
