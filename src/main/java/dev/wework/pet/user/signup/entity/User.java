@@ -24,6 +24,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Classification classification;
 
+    @Column(name = "profileImage")
+    private String profileImage;
+
 
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -70,5 +73,6 @@ public class User {
         this.phnum = phnum;
     }
     public void setPassword(String password){this.password = password;}
+    public void setProfileImage(String profileImage){this.profileImage = profileImage;}
 
 }
