@@ -23,25 +23,25 @@ public class SecurityConfigure {
                 // CSRF 비활성화 (REST API용)
                 .csrf(csrf -> csrf.disable())
 
-                // 세션 관리 (Stateless)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                // 세션 관리
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1) // 동시 세션 1개로 제한
+                        .maxSessionsPreventsLogin(false) // 새 로그인 시 기존 세션 만료
                 )
 
                 // 인증 규칙
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",// 로그인, 회원가입
+                                "/api/auth/**",
                                 "/findpassword/**",
-                                "/user/**",        //  회원가입 관련 추가
-                                "/health",           // Health check
-                                "/actuator/**",      // Actuator
-                                "/error",             // 에러 페이지
-                                "/community/**"       //게시판
+                                "/user/**",
+                                "/health",
+                                "/actuator/**",
+                                "/error",
+                                "/community/**"
                         ).permitAll()
-
                         .requestMatchers("/mypage/**").authenticated()
-
                         .anyRequest().authenticated()
                 );
 
@@ -52,7 +52,6 @@ public class SecurityConfigure {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 허용할 Origin
         configuration.setAllowedOrigins(List.of(
                 "https://kcci.co.kr",
                 "https://www.kcci.co.kr",
@@ -60,23 +59,15 @@ public class SecurityConfigure {
                 "http://localhost:3000"
         ));
 
-        // 허용할 HTTP 메서드
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        // 허용할 헤더
         configuration.setAllowedHeaders(List.of("*"));
-
-        // Credentials 허용
         configuration.setAllowCredentials(true);
-
-        // Preflight 캐시 시간
         configuration.setMaxAge(3600L);
-
-        // 노출할 헤더
         configuration.setExposedHeaders(List.of(
-                "Authorization", "Content-Type"
+                "Authorization", "Content-Type", "Session-Expires-At"
         ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
