@@ -8,6 +8,7 @@ import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
 import dev.wework.pet.mypage.service.AdminMypageService;
 import dev.wework.pet.mypage.service.ReviewerMypageService;
 import dev.wework.pet.user.signup.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.hibernate.annotations.WhereJoinTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/mypage")
@@ -75,16 +78,42 @@ public class MypageController {
     }
 
     @PostMapping("/reviewer/uploadProfile")
-    public ResponseEntity<String> uploadProfileImage(
+    public ResponseEntity<?> uploadProfileImage(
             @RequestParam("userId") int userId,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            HttpSession session) {  // ⭐ HttpSession 추가
 
         try {
+            // ⭐ 세션에서 로그인된 사용자 확인
+            Integer sessionUserId = (Integer) session.getAttribute("userId");
+
+            if (sessionUserId == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("success", "false");
+                error.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            }
+
+            // ⭐ 본인 확인 (세션 userId와 요청 userId가 같은지)
+            if (!sessionUserId.equals(userId)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("success", "false");
+                error.put("message", "본인의 프로필만 수정할 수 있습니다.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+            }
+
             String imageUrl = reviewerMypageService.uploadProfileImage(userId, file);
-            return ResponseEntity.ok(imageUrl);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("success", "true");
+            response.put("filename", imageUrl);
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("이미지 업로드 실패: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("success", "false");
+            error.put("message", "이미지 업로드 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
