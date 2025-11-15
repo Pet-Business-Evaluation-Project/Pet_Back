@@ -1,4 +1,4 @@
-package dev.wework.pet.Security.Login.domain;
+package dev.wework.pet.Security.Login.service;
 
 import dev.wework.pet.user.signup.entity.User;
 import lombok.Getter;
