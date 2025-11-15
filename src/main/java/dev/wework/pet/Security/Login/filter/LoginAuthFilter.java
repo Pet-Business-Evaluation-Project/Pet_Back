@@ -71,7 +71,7 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
             response.setCharacterEncoding("UTF-8");
             objectMapper.writeValue(response.getWriter(), responseBody);
 
-            System.out.println("✅ 세션 로그인 성공: " + loginUser.getLoginID());
+            System.out.println("세션 로그인 성공: " + loginUser.getLoginID());
         });
 
         // ========================================
@@ -135,7 +135,7 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
         // 4. 인증 전 토큰 생성
         LoginAuthToken authToken = new LoginAuthToken(loginID, password);
 
-        System.out.println("🎫 LoginAuthToken 생성 완료 (authenticated: " + authToken.isAuthenticated() + ")");
+        System.out.println("LoginAuthToken 생성 완료 (authenticated: " + authToken.isAuthenticated() + ")");
 
         // 5. AuthenticationManager를 통해 인증 시도
         // → LoginAuthProvider로 전달됨
