@@ -1,4 +1,4 @@
-package dev.wework.pet.Security;
+package dev.wework.pet.Security.Login.config;
 
 import dev.wework.pet.Security.Login.filter.LoginAuthFilter;
 import dev.wework.pet.Security.Login.provider.LoginAuthProvider;
