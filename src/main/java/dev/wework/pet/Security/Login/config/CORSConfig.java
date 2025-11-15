@@ -1,4 +1,4 @@
-package dev.wework.pet.Security;
+package dev.wework.pet.Security.Login.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
