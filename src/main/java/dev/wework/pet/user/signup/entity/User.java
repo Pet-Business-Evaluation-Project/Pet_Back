@@ -4,6 +4,8 @@ import dev.wework.pet.user.signup.dto.Enum.Classification;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Table(name = "user")
@@ -20,6 +22,8 @@ public class User {
     private String name;
     private String phnum;
     private String referralID;
+    private LocalDate created_at;
+
     @Enumerated(EnumType.STRING)
     private Classification classification;
 
@@ -43,6 +47,7 @@ public class User {
         this.phnum = phnum;
         this.referralID = referralID;
         this.classification = classification;
+        this.created_at = LocalDate.now();
     }
 
     public User(String loginID, String password, String name, String phnum,
@@ -54,6 +59,7 @@ public class User {
         this.referralID = referralID;
         this.classification = classification;
         this.address = address;
+        this.created_at = LocalDate.now();
     }
 
     public User(int userId, String loginID, String password, String name, String phnum, Classification classification) {
@@ -63,6 +69,7 @@ public class User {
         this.name = name;
         this.phnum = phnum;
         this.classification = classification;
+        this.created_at = LocalDate.now();
     }
 
     // 비즈니스 메서드
