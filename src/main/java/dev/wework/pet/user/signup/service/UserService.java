@@ -159,7 +159,6 @@ public class UserService {
                         user,
                         convertSSN,
                         signupUserRequest.account(),
-                        signupUserRequest.address(),
                         expertisesStr,
                         signupUserRequest.eduLocation(),
                         signupUserRequest.eduDate()

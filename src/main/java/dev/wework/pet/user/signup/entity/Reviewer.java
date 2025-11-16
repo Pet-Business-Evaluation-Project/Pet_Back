@@ -24,10 +24,9 @@ public class Reviewer {
 
     // 새로 추가된 필드들
     private String account;  // 계좌번호
-    private String address;  // 주소
 
     @Column(length = 500)
-    private String expertises;  // 전문분야 (쉼표로 구분된 문자열: "수의학,동물보건" 또는 사용자 입력값)
+    private String expertises;  // 전문분야 (쉼표로 구분된 문자열: "수의학,동물보건")
 
     @Column(name = "edu_location")
     private String eduLocation;  // 교육 받은 장소
@@ -45,12 +44,11 @@ public class Reviewer {
         this.ssn = ssn;
     }
 
-    public Reviewer(User user, String ssn, String account, String address,
+    public Reviewer(User user, String ssn, String account,
                     String expertises, String eduLocation, LocalDate eduDate) {
         this.user = user;
         this.ssn = ssn;
         this.account = account;
-        this.address = address;
         this.expertises = expertises;
         this.eduLocation = eduLocation;
         this.eduDate = eduDate;
@@ -65,31 +63,27 @@ public class Reviewer {
     // 비즈니스 메서드
     public void updateAccountInfo(String account) {
         if (account == null || account.trim().isEmpty()) {
-            throw new IllegalArgumentException("계좌번호를 입력하여주세요.");
+            throw new IllegalArgumentException("계좌번호는 비어있을 수 없습니다.");
         }
         this.account = account;
     }
 
-    public void updateAddress(String address) {
-        this.address = address;
-    }
-
     public void updateExpertises(String expertises) {
         if (expertises == null || expertises.trim().isEmpty()) {
-            throw new IllegalArgumentException("전문분야를 체크하거나 입력하여주십시오.");
+            throw new IllegalArgumentException("전문분야는 비어있을 수 없습니다.");
         }
         this.expertises = expertises;
     }
 
     public void updateEducationInfo(String eduLocation, LocalDate eduDate) {
         if (eduLocation == null || eduLocation.trim().isEmpty()) {
-            throw new IllegalArgumentException("교육 장소를 입력하여 주세요.");
+            throw new IllegalArgumentException("교육 장소는 비어있을 수 없습니다.");
         }
         if (eduDate == null) {
-            throw new IllegalArgumentException("교육 날짜를 입력하여 주세요.");
+            throw new IllegalArgumentException("교육 날짜는 비어있을 수 없습니다.");
         }
         if (eduDate.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("올바른 교육날짜를 입력하여 주세요.");
+            throw new IllegalArgumentException("교육 날짜는 미래일 수 없습니다.");
         }
         this.eduLocation = eduLocation;
         this.eduDate = eduDate;
@@ -97,17 +91,17 @@ public class Reviewer {
 
     public void updateEducationLocation(String eduLocation) {
         if (eduLocation == null || eduLocation.trim().isEmpty()) {
-            throw new IllegalArgumentException("교육 장소를 입력하여주세요.");
+            throw new IllegalArgumentException("교육 장소는 비어있을 수 없습니다.");
         }
         this.eduLocation = eduLocation;
     }
 
     public void updateEducationDate(LocalDate eduDate) {
         if (eduDate == null) {
-            throw new IllegalArgumentException("교육 날짜를 입력하여주세요.");
+            throw new IllegalArgumentException("교육 날짜는 비어있을 수 없습니다.");
         }
         if (eduDate.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("올바른 교육날짜를 입력하여 주세요.");
+            throw new IllegalArgumentException("교육 날짜는 미래일 수 없습니다.");
         }
         this.eduDate = eduDate;
     }
