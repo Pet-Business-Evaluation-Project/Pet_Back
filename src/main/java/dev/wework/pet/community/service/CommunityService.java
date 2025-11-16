@@ -4,7 +4,7 @@ import dev.wework.pet.community.dto.CommunityRequestDto;
 import dev.wework.pet.community.dto.CommunityResponseDto;
 import dev.wework.pet.community.entity.Community;
 import dev.wework.pet.community.repository.CommunityRepository;
-import dev.wework.pet.user.signup.dto.Classification;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

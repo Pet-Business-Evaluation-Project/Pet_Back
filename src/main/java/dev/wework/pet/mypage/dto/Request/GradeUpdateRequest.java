@@ -1,6 +1,6 @@
 package dev.wework.pet.mypage.dto.Request;
 
-import dev.wework.pet.user.signup.dto.Reviewergrade;
+import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
 
 import java.util.List;
 

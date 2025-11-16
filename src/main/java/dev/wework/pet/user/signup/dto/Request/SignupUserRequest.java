@@ -1,6 +1,6 @@
 package dev.wework.pet.user.signup.dto.Request;
 
-import dev.wework.pet.user.signup.dto.Classification;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 
 import java.time.LocalDate;
 import java.util.List;

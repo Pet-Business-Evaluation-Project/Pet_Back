@@ -2,9 +2,10 @@ package dev.wework.pet.user.signup.service;
 
 import dev.wework.pet.user.signup.configure.generate.Convention;
 import dev.wework.pet.user.signup.configure.validation.Validation;
+import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderBCrypt;
-import dev.wework.pet.user.signup.dto.Reviewergrade;
+import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
 import dev.wework.pet.user.signup.entity.*;
 import dev.wework.pet.user.signup.exception.*;
 import dev.wework.pet.user.signup.repository.*;
@@ -168,7 +169,7 @@ public class UserService {
 
                 User savedUser = userRepository.save(user);
 
-                Grade defaultGrade = new Grade(reviewer, Reviewergrade.심사원보);
+                Grade defaultGrade = new Grade(reviewer, Reviewergrade.심사원보, ReferralGrade.일반);
                 gradeRepository.save(defaultGrade);
 
                 return savedUser;
