@@ -27,7 +27,7 @@ public class User {
     @Column(name = "profileImage")
     private String profileImage;
 
-
+    private String address;  // 주소 필드 추가
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Member member;
@@ -37,13 +37,24 @@ public class User {
 
     protected User() {}
 
-    public User(String loginID, String password, String name, String phnum,String referralID, Classification classification) {
+    public User(String loginID, String password, String name, String phnum, String referralID, Classification classification) {
         this.loginID = loginID;
         this.password = password;
         this.name = name;
         this.phnum = phnum;
         this.referralID = referralID;
         this.classification = classification;
+    }
+
+    public User(String loginID, String password, String name, String phnum,
+                String referralID, Classification classification, String address) {
+        this.loginID = loginID;
+        this.password = password;
+        this.name = name;
+        this.phnum = phnum;
+        this.referralID = referralID;
+        this.classification = classification;
+        this.address = address;
     }
 
     public User(int userId, String loginID, String password, String name, String phnum, Classification classification) {
@@ -55,24 +66,48 @@ public class User {
         this.classification = classification;
     }
 
-    public void registerMember(Member member){
+    // 비즈니스 메서드
+    public void registerMember(Member member) {
         this.member = member;
     }
 
-    public void registerReviewer(Reviewer reviewer){
+    public void registerReviewer(Reviewer reviewer) {
         this.reviewer = reviewer;
     }
 
-    public void setLoginID(String loginID){
+    public void updateLoginID(String loginID) {
+        if (loginID == null || loginID.trim().isEmpty()) {
+            throw new IllegalArgumentException("로그인 ID는 비어있을 수 없습니다.");
+        }
         this.loginID = loginID;
     }
-    public void setName(String name) {
+
+    public void updateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("이름은 비어있을 수 없습니다.");
+        }
         this.name = name;
     }
-    public void setPhnum(String phnum){
+
+    public void updatePhoneNumber(String phnum) {
+        if (phnum == null || phnum.trim().isEmpty()) {
+            throw new IllegalArgumentException("전화번호는 비어있을 수 없습니다.");
+        }
         this.phnum = phnum;
     }
-    public void setPassword(String password){this.password = password;}
-    public void setProfileImage(String profileImage){this.profileImage = profileImage;}
 
+    public void updatePassword(String encodedPassword) {
+        if (encodedPassword == null || encodedPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("비밀번호는 비어있을 수 없습니다.");
+        }
+        this.password = encodedPassword;
+    }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public void updateAddress(String address) {
+        this.address = address;
+    }
 }
