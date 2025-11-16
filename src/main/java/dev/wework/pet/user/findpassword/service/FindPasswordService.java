@@ -60,7 +60,7 @@ public class FindPasswordService {
         User user = userRepository.findByUserId(request.userId()).orElseThrow(() -> new NotExistUserIdException());
 
         String encodedPassword = passwordEncoderBCrypt.encode(request.password());
-        user.setPassword(encodedPassword);
+        user.updatePassword(encodedPassword);
         userRepository.save(user);
 
         return new PasswordChangeResponse(encodedPassword);

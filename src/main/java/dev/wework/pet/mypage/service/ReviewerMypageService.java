@@ -104,11 +104,11 @@ public class ReviewerMypageService {
         User user = userRepository.findByUserId(request.userId())
                 .orElseThrow(() -> new NotExistUserIdException());
 
-        user.setName(request.name());
-        user.setPhnum(request.phnum());
+        user.updateName(request.name());
+        user.updatePhoneNumber(request.phnum());
 
         if (request.profileImage() != null) {
-            user.setProfileImage(request.profileImage());
+            user.updateProfileImage(request.profileImage());
         }
 
         userRepository.save(user);
@@ -163,7 +163,7 @@ public class ReviewerMypageService {
         }
 
         // DB 업데이트
-        user.setProfileImage(filename);
+        user.updateProfileImage(filename);
         userRepository.save(user);
 
         return filename;

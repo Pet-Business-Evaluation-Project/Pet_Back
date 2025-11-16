@@ -67,7 +67,8 @@ public class SecurityConfigure {
                                 "/health",
                                 "/actuator/**",
                                 "/error",
-                                "/community/**"
+                                "/community/**",
+                                  "/expertise/**"
                         ).permitAll()
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
