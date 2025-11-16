@@ -1,4 +1,4 @@
-package dev.wework.pet.user.signup.dto;
+package dev.wework.pet.user.signup.dto.Enum;
 
 public enum Reviewergrade {
     심사원보,

@@ -9,8 +9,7 @@ import dev.wework.pet.mypage.dto.Request.ReviewerMyPageRequest;
 import dev.wework.pet.mypage.dto.Response.EditInfoResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
 import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
-import dev.wework.pet.user.signup.dto.Classification;
-import dev.wework.pet.user.signup.dto.Reviewergrade;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 import dev.wework.pet.user.signup.entity.Grade;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import dev.wework.pet.user.signup.entity.User;
@@ -58,7 +57,8 @@ public class ReviewerMypageService {
                 user.getName(),
                 user.getPhnum(),
                 grade.getReviewerGrade(),
-                user.getProfileImage()
+                user.getProfileImage(),
+                grade.getReferralgrade()
         );
     }
 
@@ -93,7 +93,8 @@ public class ReviewerMypageService {
                     return new ReviewerInviteResponse(
                             user.getName(),
                             user.getPhnum(),
-                            grade.getReviewerGrade()
+                            grade.getReviewerGrade(),
+                            grade.getReferralgrade()
                     );
                 })
                 .filter(Objects::nonNull)

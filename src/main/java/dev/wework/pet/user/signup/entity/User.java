@@ -1,7 +1,6 @@
 package dev.wework.pet.user.signup.entity;
 
-import dev.wework.pet.user.signup.dto.Classification;
-import dev.wework.pet.user.signup.exception.NotMatchClassficationException;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 import jakarta.persistence.*;
 import lombok.Getter;
 

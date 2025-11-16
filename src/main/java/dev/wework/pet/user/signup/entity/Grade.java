@@ -1,9 +1,9 @@
 package dev.wework.pet.user.signup.entity;
 
-import dev.wework.pet.user.signup.dto.Reviewergrade;
+import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
+import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -22,17 +22,23 @@ public class Grade {
     @Column(name = "reviewer_grade", nullable = false)
     private Reviewergrade reviewerGrade;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "referral_grade")
+    private ReferralGrade referralgrade;
+
     protected Grade() {}
 
-    public Grade(Reviewer reviewer, Reviewergrade reviewerGrade) {
+    public Grade(Reviewer reviewer, Reviewergrade reviewerGrade , ReferralGrade referralgrade) {
         this.reviewer = reviewer;
         this.reviewerGrade = reviewerGrade;
+        this.referralgrade = referralgrade;
     }
 
-    public Grade(int gradeId, Reviewer reviewer, Reviewergrade reviewerGrade){
+    public Grade(int gradeId, Reviewer reviewer, Reviewergrade reviewerGrade , ReferralGrade referralgrade) {
         this.gradeId = gradeId;
         this.reviewer = reviewer;
         this.reviewerGrade = reviewerGrade;
+        this.referralgrade = referralgrade;
     }
 
     public void setReviewerGrade (Reviewergrade reviewerGrade){
