@@ -77,11 +77,9 @@ public class UserService {
      * 아이디 중복 검사 (User + ApprovalUser 모두 체크)
      */
     public boolean DuplicationLoginIDCheck(String loginID) {
-        // User 테이블 체크
         if (userRepository.findByLoginIDIgnoreCase(loginID).isPresent()) {
             return true;
         }
-        // ApprovalUser 테이블 체크
         return approvalUserRepository.existsByLoginIDIgnoreCase(loginID);
     }
 
@@ -105,12 +103,10 @@ public class UserService {
     @Transactional
     public ApprovalUser requestSignup(SignupUserRequest signupUserRequest) {
 
-        // 아이디 중복 확인 (User + ApprovalUser)
         if (DuplicationLoginIDCheck(signupUserRequest.loginID())) {
             throw new DuplicationLoginIDException();
         }
 
-        // 비밀번호 유효성 검사 후 암호화
         String hashPassword;
         if (ValidationPasswordCheck(signupUserRequest.password())) {
             hashPassword = passwordEncoding(signupUserRequest.password());
@@ -118,38 +114,27 @@ public class UserService {
             throw new ValidationFaliurePasswordException();
         }
 
-        // 전화번호 유효성 검사
         if (!ValidationPhnumCheck(signupUserRequest.phnum())) {
             throw new ValidationFaliurePhnumException();
         }
 
-        // 분류번호 검증 및 변환
         String classifNumber = signupUserRequest.Classifnumber();
         String expertisesStr = null;
 
         switch (signupUserRequest.classification()) {
             case 기업 -> {
-                // 사업자등록번호 검증
                 if (!Validation.isValidSno(classifNumber)) {
                     throw new ValidationFaliureSnoException();
                 }
-                // 중복 체크 (Member 테이블)
                 if (memberRepository.existsBySno(classifNumber)) {
                     throw new DuplicationSnoException();
                 }
             }
             case 심사원 -> {
-                // 주민등록번호 검증
                 if (!Validation.isValidSSN(classifNumber)) {
                     throw new NotMatchSizeSSN();
                 }
-                // 주민등록번호 변환
                 classifNumber = Convention.ConvertSSN(classifNumber);
-                // 중복 체크 (Reviewer 테이블) -> 앞자리만으로는 같은사람인지 아닌지 알수 없으므로 일단 주석처리를 함
-              /*  if (reviewerRepository.existsBySsn(classifNumber)) {
-                    throw new DuplicationSsnException();
-                }*/
-                // 전문분야 문자열 생성
                 expertisesStr = buildExpertisesString(
                         signupUserRequest.expertises(),
                         signupUserRequest.customExpertise()
@@ -161,7 +146,6 @@ public class UserService {
             default -> throw new NotMatchClassficationException();
         }
 
-        // ApprovalUser 생성 및 저장
         ApprovalUser approvalUser = new ApprovalUser(
                 signupUserRequest.loginID(),
                 hashPassword,
@@ -171,13 +155,11 @@ public class UserService {
                 signupUserRequest.classification(),
                 signupUserRequest.address(),
                 classifNumber,
-                // Reviewer 정보
                 signupUserRequest.bankName(),
                 signupUserRequest.account(),
                 expertisesStr,
                 signupUserRequest.eduLocation(),
                 signupUserRequest.eduDate(),
-                // Member 정보
                 signupUserRequest.email(),
                 signupUserRequest.companycls(),
                 signupUserRequest.introduction(),
@@ -192,6 +174,27 @@ public class UserService {
      */
     public List<ApprovalUser> getPendingApprovals() {
         return approvalUserRepository.findByApprovalStatus(ApprovalStatus.승인대기);
+    }
+
+    /**
+     * 승인된 목록 조회
+     */
+    public List<ApprovalUser> getApprovedUsers() {
+        return approvalUserRepository.findByApprovalStatus(ApprovalStatus.승인);
+    }
+
+    /**
+     * 거부된 목록 조회
+     */
+    public List<ApprovalUser> getRejectedUsers() {
+        return approvalUserRepository.findByApprovalStatus(ApprovalStatus.거절);
+    }
+
+    /**
+     * 전체 목록 조회
+     */
+    public List<ApprovalUser> getAllApprovalUsers() {
+        return approvalUserRepository.findAll();
     }
 
     /**
@@ -210,24 +213,20 @@ public class UserService {
     @Transactional
     public User approveSignup(int approvalId, int adminId) {
 
-        // ApprovalUser 조회
         ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가입 신청입니다."));
 
-        // 승인 상태 확인
         if (approvalUser.getApprovalStatus() != ApprovalStatus.승인대기) {
             throw new IllegalStateException("이미 처리된 신청입니다.");
         }
 
-        // 최종 아이디 중복 체크 (User 테이블만)
         if (userRepository.findByLoginIDIgnoreCase(approvalUser.getLoginID()).isPresent()) {
             throw new DuplicationLoginIDException();
         }
 
-        // User 엔티티 생성
         User user = new User(
                 approvalUser.getLoginID(),
-                approvalUser.getPassword(),  // 이미 암호화됨
+                approvalUser.getPassword(),
                 approvalUser.getName(),
                 approvalUser.getPhnum(),
                 approvalUser.getReferralID(),
@@ -235,7 +234,6 @@ public class UserService {
                 approvalUser.getAddress()
         );
 
-        //  Classification에 따른 추가 정보 등록
         switch (approvalUser.getClassification()) {
             case 기업 -> {
                 Member member = new Member(
@@ -260,10 +258,8 @@ public class UserService {
                 );
                 user.registerReviewer(reviewer);
 
-                // User 저장
                 User savedUser = userRepository.save(user);
 
-                // 기본 등급 생성
                 Grade defaultGrade = new Grade(
                         reviewer,
                         Reviewergrade.심사원보,
@@ -271,7 +267,6 @@ public class UserService {
                 );
                 gradeRepository.save(defaultGrade);
 
-                // ApprovalUser 승인 처리
                 approvalUser.approve(adminId);
 
                 return savedUser;
@@ -279,10 +274,7 @@ public class UserService {
             default -> throw new NotMatchClassficationException();
         }
 
-        //  User 저장
         User savedUser = userRepository.save(user);
-
-        // ApprovalUser 승인 처리
         approvalUser.approve(adminId);
 
         return savedUser;
@@ -303,6 +295,113 @@ public class UserService {
 
         approvalUser.reject(adminId, reason);
         approvalUserRepository.save(approvalUser);
+    }
+
+    /**
+     * ✅ 승인 취소 (승인 → 승인대기)
+     * Grade → Reviewer/Member → User 순서로 삭제
+     */
+    @Transactional
+    public void cancelApproval(int approvalId, int adminId) {
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.승인) {
+            throw new IllegalStateException("승인 상태가 아닙니다.");
+        }
+
+        User user = userRepository.findByLoginID(approvalUser.getLoginID());
+        if (user != null) {
+            // ✅ 1. Grade 삭제 (심사원인 경우)
+            if (user.getReviewer() != null) {
+                Reviewer reviewer = user.getReviewer();
+                List<Grade> grades = gradeRepository.findAllByReviewerReviewerIdIn(
+                        List.of(reviewer.getReviewerId())
+                );
+                gradeRepository.deleteAll(grades);
+                System.out.println("✅ Grade 삭제 완료");
+            }
+
+            // ✅ 2. User 삭제 (cascade로 Reviewer/Member도 함께 삭제됨)
+            userRepository.delete(user);
+            System.out.println("✅ User 삭제 완료 (Reviewer/Member cascade 삭제)");
+        }
+
+        // ✅ 3. ApprovalUser 상태를 승인대기로 변경
+        approvalUser.cancelApproval(adminId);
+        approvalUserRepository.save(approvalUser);
+        System.out.println("✅ ApprovalUser 상태 변경 완료");
+    }
+
+    /**
+     * ✅ 거부 취소 (거절 → 승인대기)
+     */
+    @Transactional
+    public void cancelRejection(int approvalId, int adminId) {
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.거절) {
+            throw new IllegalStateException("거부 상태가 아닙니다.");
+        }
+
+        approvalUser.cancelRejection(adminId);
+        approvalUserRepository.save(approvalUser);
+    }
+
+    /**
+     * ✅ 승인된 사용자를 다시 거부
+     * Grade → Reviewer/Member → User 순서로 삭제 후 거부
+     */
+    @Transactional
+    public void rejectApprovedUser(int approvalId, int adminId, String reason) {
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.승인) {
+            throw new IllegalStateException("승인 상태가 아닙니다.");
+        }
+
+        User user = userRepository.findByLoginID(approvalUser.getLoginID());
+        if (user != null) {
+            // ✅ 1. Grade 삭제 (심사원인 경우)
+            if (user.getReviewer() != null) {
+                Reviewer reviewer = user.getReviewer();
+                List<Grade> grades = gradeRepository.findAllByReviewerReviewerIdIn(
+                        List.of(reviewer.getReviewerId())
+                );
+                gradeRepository.deleteAll(grades);
+                System.out.println("✅ Grade 삭제 완료");
+            }
+
+            // ✅ 2. User 삭제 (cascade로 Reviewer/Member도 함께 삭제됨)
+            userRepository.delete(user);
+            System.out.println("✅ User 삭제 완료");
+        }
+
+        // ✅ 3. ApprovalUser 상태를 거절로 변경
+        approvalUser.changeStatus(ApprovalStatus.거절, adminId, reason);
+        approvalUserRepository.save(approvalUser);
+        System.out.println("✅ ApprovalUser 거절 상태 변경 완료");
+    }
+
+    /**
+     * ✅ 거부된 사용자를 바로 승인
+     */
+    @Transactional
+    public User approveRejectedUser(int approvalId, int adminId) {
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.거절) {
+            throw new IllegalStateException("거부 상태가 아닙니다.");
+        }
+
+        // 승인대기로 변경 후 승인 처리
+        approvalUser.changeStatus(ApprovalStatus.승인대기, adminId, null);
+        approvalUserRepository.save(approvalUser);
+
+        return approveSignup(approvalId, adminId);
     }
 
     /**
