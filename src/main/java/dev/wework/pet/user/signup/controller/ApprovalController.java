@@ -23,12 +23,39 @@ public class ApprovalController {
     }
 
     /**
-     * 승인 대기 목록 조회 (전체)
+     * 승인 대기 목록 조회
      */
     @GetMapping("/pending")
     public ResponseEntity<List<ApprovalUser>> getPendingApprovals() {
         List<ApprovalUser> pendingList = userService.getPendingApprovals();
         return ResponseEntity.ok(pendingList);
+    }
+
+    /**
+     * 승인된 목록 조회
+     */
+    @GetMapping("/approved")
+    public ResponseEntity<List<ApprovalUser>> getApprovedUsers() {
+        List<ApprovalUser> approvedList = userService.getApprovedUsers();
+        return ResponseEntity.ok(approvedList);
+    }
+
+    /**
+     * 거부된 목록 조회
+     */
+    @GetMapping("/rejected")
+    public ResponseEntity<List<ApprovalUser>> getRejectedUsers() {
+        List<ApprovalUser> rejectedList = userService.getRejectedUsers();
+        return ResponseEntity.ok(rejectedList);
+    }
+
+    /**
+     * 전체 목록 조회
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<ApprovalUser>> getAllApprovalUsers() {
+        List<ApprovalUser> allList = userService.getAllApprovalUsers();
+        return ResponseEntity.ok(allList);
     }
 
     /**
@@ -58,11 +85,24 @@ public class ApprovalController {
             @PathVariable int approvalId,
             @RequestParam int adminId) {
 
-        User user = userService.approveSignup(approvalId, adminId);
+        try {
+            User user = userService.approveSignup(approvalId, adminId);
 
-        return ResponseEntity.ok(
-                "승인 완료: " + user.getName() + "(" + user.getLoginID() + ")"
-        );
+            String message = String.format(
+                    "✅ 승인 완료\n\n" +
+                            "이름: %s\n" +
+                            "아이디: %s\n" +
+                            "분류: %s\n\n" +
+                            "해당 회원은 이제 로그인이 가능합니다.",
+                    user.getName(),
+                    user.getLoginID(),
+                    user.getClassification().name()
+            );
+
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
     }
 
     /**
@@ -74,8 +114,84 @@ public class ApprovalController {
             @RequestParam int adminId,
             @RequestParam String reason) {
 
-        userService.rejectSignup(approvalId, adminId, reason);
+        try {
+            userService.rejectSignup(approvalId, adminId, reason);
 
-        return ResponseEntity.ok("거부 완료: " + reason);
+            String message = String.format(
+                    "❌ 거부 완료\n\n" +
+                            "거부 사유: %s\n\n" +
+                            "해당 신청이 거부되었습니다.",
+                    reason
+            );
+
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
+    }
+
+    /**
+     * 승인 취소 (승인 → 승인대기)
+     */
+    @PostMapping("/cancel-approval/{approvalId}")
+    public ResponseEntity<String> cancelApproval(
+            @PathVariable int approvalId,
+            @RequestParam int adminId) {
+
+        try {
+            userService.cancelApproval(approvalId, adminId);
+            return ResponseEntity.ok("✅ 승인이 취소되었습니다.\n다시 승인 대기 상태로 변경되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
+    }
+
+    /**
+     * 거부 취소 (거절 → 승인대기)
+     */
+    @PostMapping("/cancel-rejection/{approvalId}")
+    public ResponseEntity<String> cancelRejection(
+            @PathVariable int approvalId,
+            @RequestParam int adminId) {
+
+        try {
+            userService.cancelRejection(approvalId, adminId);
+            return ResponseEntity.ok("✅ 거부가 취소되었습니다.\n다시 승인 대기 상태로 변경되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
+    }
+
+    /**
+     * 승인된 사용자를 거부로 변경
+     */
+    @PostMapping("/reject-approved/{approvalId}")
+    public ResponseEntity<String> rejectApprovedUser(
+            @PathVariable int approvalId,
+            @RequestParam int adminId,
+            @RequestParam String reason) {
+
+        try {
+            userService.rejectApprovedUser(approvalId, adminId, reason);
+            return ResponseEntity.ok("✅ 승인이 취소되고 거부되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
+    }
+
+    /**
+     * 거부된 사용자를 바로 승인
+     */
+    @PostMapping("/approve-rejected/{approvalId}")
+    public ResponseEntity<String> approveRejectedUser(
+            @PathVariable int approvalId,
+            @RequestParam int adminId) {
+
+        try {
+            User user = userService.approveRejectedUser(approvalId, adminId);
+            return ResponseEntity.ok("✅ " + user.getName() + "님이 승인되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
     }
 }

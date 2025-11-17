@@ -45,7 +45,6 @@ public class ApprovalUser {
     private String classifNumber;
 
     // ========== Reviewer 전용 정보 ==========
-
     @Column(name = "bank_name")
     private String bankName;
 
@@ -124,6 +123,7 @@ public class ApprovalUser {
         this.companycls = companycls;
         this.introduction = introduction;
         this.mainsales = mainsales;
+
         this.approvalStatus = ApprovalStatus.승인대기;
         this.requestedAt = LocalDateTime.now();
     }
@@ -153,5 +153,45 @@ public class ApprovalUser {
         this.processedAt = LocalDateTime.now();
         this.processedBy = adminId;
         this.rejectionReason = reason;
+    }
+
+    /**
+     * 승인 취소 (승인 → 승인대기)
+     */
+    public void cancelApproval(int adminId) {
+        if (this.approvalStatus != ApprovalStatus.승인) {
+            throw new IllegalStateException("승인 상태가 아닙니다.");
+        }
+        this.approvalStatus = ApprovalStatus.승인대기;
+        this.processedAt = null;
+        this.processedBy = null;
+    }
+
+    /**
+     * 거부 취소 (거절 → 승인대기)
+     */
+    public void cancelRejection(int adminId) {
+        if (this.approvalStatus != ApprovalStatus.거절) {
+            throw new IllegalStateException("거부 상태가 아닙니다.");
+        }
+        this.approvalStatus = ApprovalStatus.승인대기;
+        this.processedAt = null;
+        this.processedBy = null;
+        this.rejectionReason = null;
+    }
+
+    /**
+     * 승인 상태 변경 (유연한 메서드)
+     */
+    public void changeStatus(ApprovalStatus newStatus, int adminId, String reason) {
+        this.approvalStatus = newStatus;
+        this.processedAt = LocalDateTime.now();
+        this.processedBy = adminId;
+
+        if (newStatus == ApprovalStatus.거절) {
+            this.rejectionReason = reason;
+        } else if (newStatus == ApprovalStatus.승인대기) {
+            this.rejectionReason = null;
+        }
     }
 }
