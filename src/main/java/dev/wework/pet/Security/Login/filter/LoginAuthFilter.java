@@ -38,7 +38,7 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
         // 인증 성공 핸들러
         // ========================================
         this.setAuthenticationSuccessHandler((request, response, authentication) -> {
-            System.out.println("로그인 성공 핸들러 실행");
+            System.out.println("✅ 로그인 성공 핸들러 실행");
 
             // LoginAuthToken에서 UserDetails 추출
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -69,26 +69,57 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            objectMapper.writeValue(response.getWriter(), responseBody);
 
-            System.out.println("세션 로그인 성공: " + loginUser.getLoginID());
+            String jsonResponse = objectMapper.writeValueAsString(responseBody);
+            System.out.println("📤 성공 응답 JSON: " + jsonResponse);
+
+            response.getWriter().write(jsonResponse);
+            response.getWriter().flush();
+
+            System.out.println("✅ 세션 로그인 성공: " + loginUser.getLoginID());
         });
 
         // ========================================
-        // 인증 실패 핸들러
+        // ✅ 인증 실패 핸들러 개선
         // ========================================
         this.setAuthenticationFailureHandler((request, response, exception) -> {
-            System.out.println("로그인 실패: " + exception.getMessage());
+            System.out.println("❌ 로그인 실패 핸들러 실행");
+            System.out.println("예외 클래스: " + exception.getClass().getSimpleName());
+            System.out.println("예외 메시지: " + exception.getMessage());
 
+            // ✅ 예외 원인 체크 (중첩된 예외가 있을 수 있음)
+            Throwable cause = exception.getCause();
+            if (cause != null) {
+                System.out.println("예외 원인: " + cause.getMessage());
+            }
+
+            // ✅ 에러 메시지 결정 (우선순위: 예외 메시지 > 기본 메시지)
+            String errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
+
+            if (exception.getMessage() != null && !exception.getMessage().isEmpty()) {
+                errorMessage = exception.getMessage();
+                System.out.println("✅ 사용할 에러 메시지: " + errorMessage);
+            } else {
+                System.out.println("⚠️ 예외 메시지 없음, 기본 메시지 사용");
+            }
+
+            // 응답 데이터 구성
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("success", false);
-            responseBody.put("message", exception.getMessage() != null ?
-                    exception.getMessage() : "아이디 또는 비밀번호가 올바르지 않습니다.");
+            responseBody.put("message", errorMessage);
 
+            // JSON 응답
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            objectMapper.writeValue(response.getWriter(), responseBody);
+
+            String jsonResponse = objectMapper.writeValueAsString(responseBody);
+            System.out.println("📤 실패 응답 JSON: " + jsonResponse);
+
+            response.getWriter().write(jsonResponse);
+            response.getWriter().flush();
+
+            System.out.println("❌ 로그인 실패 처리 완료");
         });
     }
 
@@ -108,7 +139,7 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
                                                 HttpServletResponse response)
             throws AuthenticationException, IOException {
 
-        System.out.println("LoginAuthFilter: 로그인 시도 감지");
+        System.out.println("🔍 LoginAuthFilter: 로그인 시도 감지");
 
         // 1. Request Body 읽기
         StringBuilder sb = new StringBuilder();
@@ -118,29 +149,52 @@ public class LoginAuthFilter extends AbstractAuthenticationProcessingFilter {
         }
         String body = sb.toString();
 
-        System.out.println("Request Body: " + body);
+        System.out.println("📥 Request Body: " + body);
 
         // 2. JSON → LoginRequest DTO 변환
-        LoginRequest loginReq = objectMapper.readValue(body, LoginRequest.class);
+        LoginRequest loginReq;
+        try {
+            loginReq = objectMapper.readValue(body, LoginRequest.class);
+            System.out.println("✅ JSON 파싱 성공");
+        } catch (Exception e) {
+            System.out.println("❌ JSON 파싱 실패: " + e.getMessage());
+            throw new BadCredentialsException("잘못된 요청 형식입니다.");
+        }
 
         // 3. loginID와 password 검증
         String loginID = Optional.ofNullable(loginReq.getLoginID())
-                .orElseThrow(() -> new BadCredentialsException("로그인 ID는 필수입니다."));
+                .filter(id -> !id.trim().isEmpty())
+                .orElseThrow(() -> {
+                    System.out.println("❌ 로그인 ID 누락");
+                    return new BadCredentialsException("로그인 ID는 필수입니다.");
+                });
 
         String password = Optional.ofNullable(loginReq.getPassword())
-                .orElseThrow(() -> new BadCredentialsException("비밀번호는 필수입니다."));
+                .filter(pw -> !pw.trim().isEmpty())
+                .orElseThrow(() -> {
+                    System.out.println("❌ 비밀번호 누락");
+                    return new BadCredentialsException("비밀번호는 필수입니다.");
+                });
 
-        System.out.println("LoginID: " + loginID);
+        System.out.println("📝 LoginID: " + loginID);
+        System.out.println("🔑 Password 길이: " + password.length());
 
         // 4. 인증 전 토큰 생성
         LoginAuthToken authToken = new LoginAuthToken(loginID, password);
 
-        System.out.println("LoginAuthToken 생성 완료 (authenticated: " + authToken.isAuthenticated() + ")");
+        System.out.println("🎫 LoginAuthToken 생성 완료 (authenticated: " + authToken.isAuthenticated() + ")");
 
         // 5. AuthenticationManager를 통해 인증 시도
         // → LoginAuthProvider로 전달됨
-        System.out.println("AuthenticationManager에게 인증 위임");
+        System.out.println("🔐 AuthenticationManager에게 인증 위임");
 
-        return this.getAuthenticationManager().authenticate(authToken);
+        try {
+            Authentication result = this.getAuthenticationManager().authenticate(authToken);
+            System.out.println("✅ AuthenticationManager 인증 성공");
+            return result;
+        } catch (AuthenticationException e) {
+            System.out.println("❌ AuthenticationManager 인증 실패: " + e.getMessage());
+            throw e; // 실패 핸들러로 전달
+        }
     }
 }
