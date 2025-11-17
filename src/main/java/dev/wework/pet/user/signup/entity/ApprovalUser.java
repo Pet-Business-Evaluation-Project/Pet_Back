@@ -73,7 +73,7 @@ public class ApprovalUser {
     // ========== 승인 관리 정보 ==========
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_status", nullable = false)
-    private ApprovalStatus approvalStatus;
+    private ApprovalStatus approvalStatus = ApprovalStatus.승인대기;
 
     @Column(name = "requested_at", nullable = false)
     private LocalDateTime requestedAt;
@@ -120,7 +120,7 @@ public class ApprovalUser {
         this.introduction = introduction;
         this.mainsales = mainsales;
 
-        // 승인 관리
+        // ✅ 승인 관리 - 명시적으로 다시 설정 (안전장치)
         this.approvalStatus = ApprovalStatus.승인대기;
         this.requestedAt = LocalDateTime.now();
     }
