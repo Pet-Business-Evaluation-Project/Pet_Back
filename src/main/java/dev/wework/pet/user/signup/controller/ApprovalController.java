@@ -22,6 +22,41 @@ public class ApprovalController {
         this.userService = userService;
     }
 
+    // ========================================
+    // ✅ 가입 요청 섹션 전용 API (승인대기만)
+    // ========================================
+
+    /**
+     * 전체 가입 요청 조회 (승인대기만)
+     */
+    @GetMapping("/requests/all")
+    public ResponseEntity<List<ApprovalUser>> getAllPendingRequests() {
+        List<ApprovalUser> pendingList = userService.getPendingApprovals();
+        return ResponseEntity.ok(pendingList);
+    }
+
+    /**
+     * 심사원 가입 요청 조회 (승인대기만)
+     */
+    @GetMapping("/requests/reviewer")
+    public ResponseEntity<List<ApprovalUser>> getReviewerPendingRequests() {
+        List<ApprovalUser> pendingList = userService.getPendingApprovalsByClassification(Classification.심사원);
+        return ResponseEntity.ok(pendingList);
+    }
+
+    /**
+     * 기업 가입 요청 조회 (승인대기만)
+     */
+    @GetMapping("/requests/member")
+    public ResponseEntity<List<ApprovalUser>> getMemberPendingRequests() {
+        List<ApprovalUser> pendingList = userService.getPendingApprovalsByClassification(Classification.기업);
+        return ResponseEntity.ok(pendingList);
+    }
+
+    // ========================================
+    // ✅ 승인 관리 섹션 전용 API (모든 상태)
+    // ========================================
+
     /**
      * 승인 대기 목록 조회
      */
@@ -76,6 +111,10 @@ public class ApprovalController {
         long count = userService.getPendingCount();
         return ResponseEntity.ok(Map.of("pendingCount", count));
     }
+
+    // ========================================
+    // 액션 API
+    // ========================================
 
     /**
      * 가입 승인
