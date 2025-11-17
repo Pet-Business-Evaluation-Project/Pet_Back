@@ -1,15 +1,18 @@
 package dev.wework.pet.Security.Login.provider;
 
-
 import dev.wework.pet.Security.Login.filter.LoginAuthToken;
 import dev.wework.pet.Security.Login.service.LoginServiceDetailsImpl;
 import dev.wework.pet.user.configure.encode.PasswordEncoderBCrypt;
+import dev.wework.pet.user.signup.dto.Enum.ApprovalStatus;
+import dev.wework.pet.user.signup.entity.ApprovalUser;
+import dev.wework.pet.user.signup.repository.ApprovalUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +24,8 @@ import org.springframework.stereotype.Component;
 public class LoginAuthProvider implements AuthenticationProvider {
 
     private final LoginServiceDetailsImpl loginServiceDetailsImpl;
-    private final PasswordEncoderBCrypt passwordEncoder;  // BCrypt 인코더 주입
+    private final PasswordEncoderBCrypt passwordEncoder;
+    private final ApprovalUserRepository approvalUserRepository;  // ✅ 추가
 
     /**
      * 실제 인증 처리 로직
@@ -45,10 +49,54 @@ public class LoginAuthProvider implements AuthenticationProvider {
 
         System.out.println("인증 대상 LoginID: " + loginID);
 
-        // 2. LoginServiceDetailsImpl을 통해 사용자 조회
-        UserDetails userDetails = loginServiceDetailsImpl.loadUserByUsername(loginID);
+        UserDetails userDetails;
 
-        // 3. 비밀번호 검증
+        try {
+            // 2. LoginServiceDetailsImpl을 통해 사용자 조회
+            userDetails = loginServiceDetailsImpl.loadUserByUsername(loginID);
+            System.out.println("User 테이블에서 사용자 발견: " + loginID);
+
+        } catch (UsernameNotFoundException e) {
+            // ✅ 3. User 테이블에 없으면 ApprovalUser 테이블 확인
+            System.out.println("User 테이블에 없음 -> ApprovalUser 확인");
+
+            ApprovalUser approvalUser = approvalUserRepository
+                    .findByLoginIDIgnoreCase(loginID)
+                    .orElse(null);
+
+            if (approvalUser != null) {
+                System.out.println("ApprovalUser 발견: " + approvalUser.getLoginID() +
+                        ", 상태: " + approvalUser.getApprovalStatus());
+
+                // 비밀번호 확인
+                if (!passwordEncoder.matches(password, approvalUser.getPassword())) {
+                    throw new BadCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.");
+                }
+
+                // ✅ 승인 상태별 예외 처리
+                if (approvalUser.getApprovalStatus() == ApprovalStatus.승인대기) {
+                    throw new BadCredentialsException(
+                            "회원가입 승인 대기 중입니다.\n관리자 승인 후 로그인이 가능합니다."
+                    );
+                } else if (approvalUser.getApprovalStatus() == ApprovalStatus.거절) {
+                    String reason = approvalUser.getRejectionReason() != null ?
+                            approvalUser.getRejectionReason() : "관리자 문의";
+                    throw new BadCredentialsException(
+                            "회원가입이 거부되었습니다.\n사유: " + reason
+                    );
+                } else if (approvalUser.getApprovalStatus() == ApprovalStatus.승인) {
+                    // 승인됐는데 User 테이블에 없는 경우 (데이터 불일치)
+                    throw new BadCredentialsException(
+                            "계정 정보에 문제가 있습니다. 관리자에게 문의해주세요."
+                    );
+                }
+            }
+
+            // ApprovalUser에도 없으면 아이디가 존재하지 않음
+            throw new BadCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
+
+        // 4. 비밀번호 검증 (User 테이블에서 찾은 경우)
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             System.out.println("비밀번호 불일치: " + loginID);
             throw new BadCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -57,7 +105,7 @@ public class LoginAuthProvider implements AuthenticationProvider {
         System.out.println("비밀번호 일치");
         System.out.println("권한: " + userDetails.getAuthorities());
 
-        // 4. 인증 후 토큰 생성 (UserDetails + 권한)
+        // 5. 인증 후 토큰 생성 (UserDetails + 권한)
         LoginAuthToken authenticatedToken =
                 new LoginAuthToken(userDetails, userDetails.getAuthorities());
 
