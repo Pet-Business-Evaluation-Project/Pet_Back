@@ -119,8 +119,6 @@ public class ApprovalUser {
         this.companycls = companycls;
         this.introduction = introduction;
         this.mainsales = mainsales;
-
-        // ✅ 승인 관리 - 명시적으로 다시 설정 (안전장치)
         this.approvalStatus = ApprovalStatus.승인대기;
         this.requestedAt = LocalDateTime.now();
     }
