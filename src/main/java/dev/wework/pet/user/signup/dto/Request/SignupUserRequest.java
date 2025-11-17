@@ -17,6 +17,7 @@ public record SignupUserRequest(
         String address,          // 주소 (공통)
 
         // 심사원 추가 정보
+        String bankName,
         String account,          // 계좌번호
         List<String> expertises, // 전문분야 리스트 (체크박스로 선택한 것들)
         String customExpertise,  // 기타 전문분야 (사용자 직접 입력)

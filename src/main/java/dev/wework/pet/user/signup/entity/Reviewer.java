@@ -22,7 +22,10 @@ public class Reviewer {
 
     private String ssn;
 
-    // 새로 추가된 필드들
+    // 은행명 추가
+    @Column(name = "bank_name")
+    private String bankName;  // 은행명
+
     private String account;  // 계좌번호
 
     @Column(length = 500)
@@ -44,10 +47,12 @@ public class Reviewer {
         this.ssn = ssn;
     }
 
-    public Reviewer(User user, String ssn, String account,
+    //
+    public Reviewer(User user, String ssn, String bankName, String account,
                     String expertises, String eduLocation, LocalDate eduDate) {
         this.user = user;
         this.ssn = ssn;
+        this.bankName = bankName;
         this.account = account;
         this.expertises = expertises;
         this.eduLocation = eduLocation;
@@ -60,7 +65,19 @@ public class Reviewer {
         this.ssn = ssn;
     }
 
-    // 비즈니스 메서드
+    //  은행 정보 업데이트 메서드 추가
+    public void updateBankInfo(String bankName, String account) {
+        if (bankName == null || bankName.trim().isEmpty()) {
+            throw new IllegalArgumentException("은행명은 비어있을 수 없습니다.");
+        }
+        if (account == null || account.trim().isEmpty()) {
+            throw new IllegalArgumentException("계좌번호는 비어있을 수 없습니다.");
+        }
+        this.bankName = bankName;
+        this.account = account;
+    }
+
+    // 기존 메서드들
     public void updateAccountInfo(String account) {
         if (account == null || account.trim().isEmpty()) {
             throw new IllegalArgumentException("계좌번호는 비어있을 수 없습니다.");
