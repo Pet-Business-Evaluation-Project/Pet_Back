@@ -100,7 +100,8 @@ public class SecurityConfigure {
                 "https://kcci.co.kr",
                 "https://www.kcci.co.kr",
                 "https://test.kcci.co.kr",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://218.239.151.15:3000"
         ));
 
         configuration.setAllowedMethods(List.of(
