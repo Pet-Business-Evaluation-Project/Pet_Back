@@ -31,8 +31,12 @@ public class Validation {
         for (int i = 0; i < 10; i++) d[i] = s.charAt(i) - '0';
         int[] weights = {1, 3, 7, 1, 3, 7, 1, 3, 5};
         int sum = 0;
-        for (int i = 0; i < 9; i++) sum += d[i] * weights[i];
-        sum += (d[8] * 5) / 10;
+        for (int i = 0; i < 8; i++) {
+            sum += d[i] * weights[i];
+        }
+        sum += d[8] * weights[8];
+        sum += (d[8] * weights[8]) / 10;
+
         int check = (10 - (sum % 10)) % 10;
         return check == d[9];
     }
