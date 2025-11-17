@@ -58,6 +58,9 @@ public class AdminMypageService {
                             reviewer.getUser().getLoginID(),
                             reviewer.getUser().getPhnum(),
                             reviewer.getSsn(),
+                            reviewer.getUser().getAddress(),
+                            reviewer.getBankName(),
+                            reviewer.getAccount(),
                             CurrentGrade,
                             reviewer.getUser().getReferralID(),
                             CurrentRefferalGrade
