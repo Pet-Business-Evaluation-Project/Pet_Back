@@ -145,10 +145,10 @@ public class UserService {
                 }
                 // 주민등록번호 변환
                 classifNumber = Convention.ConvertSSN(classifNumber);
-                // 중복 체크 (Reviewer 테이블)
-                if (reviewerRepository.existsBySsn(classifNumber)) {
+                // 중복 체크 (Reviewer 테이블) -> 앞자리만으로는 같은사람인지 아닌지 알수 없으므로 일단 주석처리를 함
+              /*  if (reviewerRepository.existsBySsn(classifNumber)) {
                     throw new DuplicationSsnException();
-                }
+                }*/
                 // 전문분야 문자열 생성
                 expertisesStr = buildExpertisesString(
                         signupUserRequest.expertises(),
@@ -172,6 +172,7 @@ public class UserService {
                 signupUserRequest.address(),
                 classifNumber,
                 // Reviewer 정보
+                signupUserRequest.bankName(),
                 signupUserRequest.account(),
                 expertisesStr,
                 signupUserRequest.eduLocation(),
@@ -251,6 +252,7 @@ public class UserService {
                 Reviewer reviewer = new Reviewer(
                         user,
                         approvalUser.getClassifNumber(),
+                        approvalUser.getBankName(),
                         approvalUser.getAccount(),
                         approvalUser.getExpertises(),
                         approvalUser.getEduLocation(),

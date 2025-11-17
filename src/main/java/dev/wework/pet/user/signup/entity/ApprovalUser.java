@@ -45,6 +45,10 @@ public class ApprovalUser {
     private String classifNumber;
 
     // ========== Reviewer 전용 정보 ==========
+
+    @Column(name = "bank_name")
+    private String bankName;
+
     @Column(name = "account", length = 20)
     private String account;
 
@@ -95,7 +99,7 @@ public class ApprovalUser {
             String referralID, Classification classification, String address,
             String classifNumber,
             // Reviewer 정보
-            String account, String expertises, String eduLocation, LocalDate eduDate,
+            String bankName, String account, String expertises, String eduLocation, LocalDate eduDate,
             // Member 정보
             String email, String companycls, String introduction, String mainsales) {
 
@@ -109,6 +113,7 @@ public class ApprovalUser {
         this.classifNumber = classifNumber;
 
         // Reviewer 정보
+        this.bankName = bankName;
         this.account = account;
         this.expertises = expertises;
         this.eduLocation = eduLocation;
