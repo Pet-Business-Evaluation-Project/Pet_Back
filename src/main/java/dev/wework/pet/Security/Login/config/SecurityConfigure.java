@@ -71,7 +71,7 @@ public class SecurityConfigure {
                                   "/expertise/**"
                         ).permitAll()
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**","/admin/approval/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
                         .requestMatchers("/api/company/**").hasRole("COMPANY")
                         .anyRequest().authenticated()
