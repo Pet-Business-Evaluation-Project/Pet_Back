@@ -2,6 +2,8 @@ package dev.wework.pet.user.signup.service;
 
 import dev.wework.pet.user.signup.configure.generate.Convention;
 import dev.wework.pet.user.signup.configure.validation.Validation;
+import dev.wework.pet.user.signup.dto.Enum.ApprovalStatus;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderBCrypt;
@@ -25,6 +27,7 @@ public class UserService {
     private final ReviewerRepository reviewerRepository;
     private final MemberRepository memberRepository;
     private final GradeRepository gradeRepository;
+    private final ApprovalUserRepository approvalUserRepository;
 
     // 전문분야 목록 (상수로 관리)
     private static final Map<String, List<String>> EXPERTISE_CATEGORIES = new HashMap<>();
@@ -49,16 +52,18 @@ public class UserService {
             UserRepository userRepository,
             ReviewerRepository reviewerRepository,
             MemberRepository memberRepository,
-            GradeRepository gradeRepository
+            GradeRepository gradeRepository,
+            ApprovalUserRepository approvalUserRepository
     ) {
         this.userRepository = userRepository;
         this.reviewerRepository = reviewerRepository;
         this.memberRepository = memberRepository;
         this.gradeRepository = gradeRepository;
+        this.approvalUserRepository = approvalUserRepository;
     }
 
     /**
-     * ✅ BCrypt 기반 비밀번호 암호화
+     * BCrypt 기반 비밀번호 암호화
      */
     public String passwordEncoding(String password) {
         try {
@@ -69,10 +74,15 @@ public class UserService {
     }
 
     /**
-     * 아이디 중복 검사
+     * 아이디 중복 검사 (User + ApprovalUser 모두 체크)
      */
     public boolean DuplicationLoginIDCheck(String loginID) {
-        return userRepository.findByLoginIDIgnoreCase(loginID).isPresent();
+        // User 테이블 체크
+        if (userRepository.findByLoginIDIgnoreCase(loginID).isPresent()) {
+            return true;
+        }
+        // ApprovalUser 테이블 체크
+        return approvalUserRepository.existsByLoginIDIgnoreCase(loginID);
     }
 
     /**
@@ -90,18 +100,18 @@ public class UserService {
     }
 
     /**
-     * ✅ 회원가입 처리 (단순화된 버전)
+     * 회원가입 신청 (ApprovalUser 테이블에 저장)
      */
     @Transactional
-    public User signup(SignupUserRequest signupUserRequest) {
-        String hashPassword;
+    public ApprovalUser requestSignup(SignupUserRequest signupUserRequest) {
 
-        // 아이디 중복 확인
+        // 아이디 중복 확인 (User + ApprovalUser)
         if (DuplicationLoginIDCheck(signupUserRequest.loginID())) {
             throw new DuplicationLoginIDException();
         }
 
         // 비밀번호 유효성 검사 후 암호화
+        String hashPassword;
         if (ValidationPasswordCheck(signupUserRequest.password())) {
             hashPassword = passwordEncoding(signupUserRequest.password());
         } else {
@@ -113,91 +123,207 @@ public class UserService {
             throw new ValidationFaliurePhnumException();
         }
 
-        // User 엔티티 생성
-        User user = new User(
+        // 분류번호 검증 및 변환
+        String classifNumber = signupUserRequest.Classifnumber();
+        String expertisesStr = null;
+
+        switch (signupUserRequest.classification()) {
+            case 기업 -> {
+                // 사업자등록번호 검증
+                if (!Validation.isValidSno(classifNumber)) {
+                    throw new ValidationFaliureSnoException();
+                }
+                // 중복 체크 (Member 테이블)
+                if (memberRepository.existsBySno(classifNumber)) {
+                    throw new DuplicationSnoException();
+                }
+            }
+            case 심사원 -> {
+                // 주민등록번호 검증
+                if (!Validation.isValidSSN(classifNumber)) {
+                    throw new NotMatchSizeSSN();
+                }
+                // 주민등록번호 변환
+                classifNumber = Convention.ConvertSSN(classifNumber);
+                // 중복 체크 (Reviewer 테이블)
+                if (reviewerRepository.existsBySsn(classifNumber)) {
+                    throw new DuplicationSsnException();
+                }
+                // 전문분야 문자열 생성
+                expertisesStr = buildExpertisesString(
+                        signupUserRequest.expertises(),
+                        signupUserRequest.customExpertise()
+                );
+            }
+            case 관리자 -> {
+                throw new IllegalArgumentException("관리자는 직접 가입할 수 없습니다.");
+            }
+            default -> throw new NotMatchClassficationException();
+        }
+
+        // ApprovalUser 생성 및 저장
+        ApprovalUser approvalUser = new ApprovalUser(
                 signupUserRequest.loginID(),
                 hashPassword,
                 signupUserRequest.name(),
                 signupUserRequest.phnum(),
                 signupUserRequest.referralID(),
                 signupUserRequest.classification(),
-                signupUserRequest.address()
+                signupUserRequest.address(),
+                classifNumber,
+                // Reviewer 정보
+                signupUserRequest.account(),
+                expertisesStr,
+                signupUserRequest.eduLocation(),
+                signupUserRequest.eduDate(),
+                // Member 정보
+                signupUserRequest.email(),
+                signupUserRequest.companycls(),
+                signupUserRequest.introduction(),
+                signupUserRequest.mainsales()
         );
 
-        // 기업 or 심사원에 따른 추가 등록
-        switch (signupUserRequest.classification()) {
-            case 기업 -> {
-                String sno = signupUserRequest.Classifnumber();
-                if (!Validation.isValidSno(sno)) throw new ValidationFaliureSnoException();
-                if (memberRepository.existsBySno(sno)) throw new DuplicationSnoException();
+        return approvalUserRepository.save(approvalUser);
+    }
 
+    /**
+     * 승인 대기 목록 조회
+     */
+    public List<ApprovalUser> getPendingApprovals() {
+        return approvalUserRepository.findByApprovalStatus(ApprovalStatus.승인대기);
+    }
+
+    /**
+     * 특정 분류의 승인 대기 목록 조회
+     */
+    public List<ApprovalUser> getPendingApprovalsByClassification(Classification classification) {
+        return approvalUserRepository.findByClassificationAndApprovalStatus(
+                classification,
+                ApprovalStatus.승인대기
+        );
+    }
+
+    /**
+     * ✅ 가입 승인 처리 (ApprovalUser → User 이동)
+     */
+    @Transactional
+    public User approveSignup(int approvalId, int adminId) {
+
+        // ApprovalUser 조회
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가입 신청입니다."));
+
+        // 승인 상태 확인
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.승인대기) {
+            throw new IllegalStateException("이미 처리된 신청입니다.");
+        }
+
+        // 최종 아이디 중복 체크 (User 테이블만)
+        if (userRepository.findByLoginIDIgnoreCase(approvalUser.getLoginID()).isPresent()) {
+            throw new DuplicationLoginIDException();
+        }
+
+        // User 엔티티 생성
+        User user = new User(
+                approvalUser.getLoginID(),
+                approvalUser.getPassword(),  // 이미 암호화됨
+                approvalUser.getName(),
+                approvalUser.getPhnum(),
+                approvalUser.getReferralID(),
+                approvalUser.getClassification(),
+                approvalUser.getAddress()
+        );
+
+        //  Classification에 따른 추가 정보 등록
+        switch (approvalUser.getClassification()) {
+            case 기업 -> {
                 Member member = new Member(
                         user,
-                        sno,
-                        signupUserRequest.email(),
-                        signupUserRequest.companycls(),
-                        signupUserRequest.introduction(),
-                        signupUserRequest.mainsales()
+                        approvalUser.getClassifNumber(),
+                        approvalUser.getEmail(),
+                        approvalUser.getCompanycls(),
+                        approvalUser.getIntroduction(),
+                        approvalUser.getMainsales()
                 );
                 user.registerMember(member);
             }
-
             case 심사원 -> {
-                String ssn = signupUserRequest.Classifnumber();
-                if (!Validation.isValidSSN(ssn)) throw new NotMatchSizeSSN();
-
-                String convertSSN = Convention.ConvertSSN(ssn);
-                if (reviewerRepository.existsBySsn(convertSSN)) throw new DuplicationSsnException();
-
-                // 전문분야 문자열 생성
-                String expertisesStr = buildExpertisesString(
-                        signupUserRequest.expertises(),
-                        signupUserRequest.customExpertise()
-                );
-
                 Reviewer reviewer = new Reviewer(
                         user,
-                        convertSSN,
-                        signupUserRequest.account(),
-                        expertisesStr,
-                        signupUserRequest.eduLocation(),
-                        signupUserRequest.eduDate()
+                        approvalUser.getClassifNumber(),
+                        approvalUser.getAccount(),
+                        approvalUser.getExpertises(),
+                        approvalUser.getEduLocation(),
+                        approvalUser.getEduDate()
                 );
-
                 user.registerReviewer(reviewer);
 
+                // User 저장
                 User savedUser = userRepository.save(user);
 
-                Grade defaultGrade = new Grade(reviewer, Reviewergrade.심사원보, ReferralGrade.일반);
+                // 기본 등급 생성
+                Grade defaultGrade = new Grade(
+                        reviewer,
+                        Reviewergrade.심사원보,
+                        ReferralGrade.일반
+                );
                 gradeRepository.save(defaultGrade);
+
+                // ApprovalUser 승인 처리
+                approvalUser.approve(adminId);
 
                 return savedUser;
             }
-
             default -> throw new NotMatchClassficationException();
         }
 
-        return userRepository.save(user);
+        //  User 저장
+        User savedUser = userRepository.save(user);
+
+        // ApprovalUser 승인 처리
+        approvalUser.approve(adminId);
+
+        return savedUser;
+    }
+
+    /**
+     * 가입 거부 처리
+     */
+    @Transactional
+    public void rejectSignup(int approvalId, int adminId, String reason) {
+
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가입 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.승인대기) {
+            throw new IllegalStateException("이미 처리된 신청입니다.");
+        }
+
+        approvalUser.reject(adminId, reason);
+        approvalUserRepository.save(approvalUser);
+    }
+
+    /**
+     * 승인 대기 개수 조회
+     */
+    public long getPendingCount() {
+        return approvalUserRepository.countByApprovalStatus(ApprovalStatus.승인대기);
     }
 
     /**
      * 전문분야 문자열 생성
-     * 예: ["수의학", "동물보건"] + "특수 행동 치료" → "수의학,동물보건,특수 행동 치료"
      */
     private String buildExpertisesString(List<String> expertises, String customExpertise) {
         List<String> allExpertises = new ArrayList<>();
 
-        // 체크박스로 선택한 전문분야 추가
         if (expertises != null && !expertises.isEmpty()) {
             allExpertises.addAll(expertises);
         }
 
-        // 기타(사용자 입력) 전문분야 추가
         if (customExpertise != null && !customExpertise.trim().isEmpty()) {
             allExpertises.add(customExpertise.trim());
         }
 
-        // 쉼표로 구분된 문자열로 변환
         return String.join(",", allExpertises);
     }
 
