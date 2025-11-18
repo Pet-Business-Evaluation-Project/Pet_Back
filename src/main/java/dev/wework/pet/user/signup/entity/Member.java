@@ -71,7 +71,7 @@ public class Member {
 
     // 회사 정보 일괄 업데이트
     public void updateCompanyInfo(String email, String companycls,
-                                  String introduction, String mainsales) {
+                                  String introduction) {
         updateEmail(email);
         updateCompanyClassification(companycls);
         updateIntroduction(introduction);
