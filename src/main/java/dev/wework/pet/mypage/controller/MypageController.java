@@ -1,10 +1,7 @@
 package dev.wework.pet.mypage.controller;
 
 import dev.wework.pet.mypage.dto.Request.*;
-import dev.wework.pet.mypage.dto.Response.EditInfoResponse;
-import dev.wework.pet.mypage.dto.Response.ReviewerInviteResponse;
-import dev.wework.pet.mypage.dto.Response.ReviewerListResponse;
-import dev.wework.pet.mypage.dto.Response.ReviewerMyPageResponse;
+import dev.wework.pet.mypage.dto.Response.*;
 import dev.wework.pet.mypage.service.AdminMypageService;
 import dev.wework.pet.mypage.service.ReviewerMypageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +27,8 @@ public class MypageController {
         this.adminMypageService = adminMypageService;
     }
 
+    // ========== 심사원 관련 API ==========
+
     @PostMapping("/reviewer")
     public ReviewerMyPageResponse ReviewerMyPage(@RequestBody ReviewerMyPageRequest request){
         ReviewerMyPageResponse response = reviewerMypageService.ReviewerMypageInfo(request);
@@ -40,18 +39,6 @@ public class MypageController {
     public List<ReviewerInviteResponse> ReviewerInvite(@RequestBody ReviewerInviteRequest request){
         List<ReviewerInviteResponse> member = reviewerMypageService.ShowInviteMember(request);
         return member;
-    }
-
-    @PostMapping("/admin")
-    public List<ReviewerListResponse> ReviewerList(@RequestBody ReviewerListRequest request){
-        List<ReviewerListResponse> reviewers = adminMypageService.getReviewerList(request);
-        return reviewers;
-    }
-
-    @PutMapping("/admin/update")
-    public List<String> GradeUpdate(@RequestBody GradeUpdateRequest request){
-        List<String> result = adminMypageService.updateReviewerGrade(request);
-        return result;
     }
 
     @PutMapping("/reviewer/infoUpdate")
@@ -89,5 +76,45 @@ public class MypageController {
             error.put("message", "이미지 업로드 실패: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    // ========== 관리자 - 심사원 관리 API ==========
+
+    @PostMapping("/admin")
+    public List<ReviewerListResponse> ReviewerList(@RequestBody ReviewerListRequest request){
+        List<ReviewerListResponse> reviewers = adminMypageService.getReviewerList(request);
+        return reviewers;
+    }
+
+    @PutMapping("/admin/update")
+    public List<String> GradeUpdate(@RequestBody GradeUpdateRequest request){
+        List<String> result = adminMypageService.updateReviewerGrade(request);
+        return result;
+    }
+
+    // ========== 관리자 - 기업 회원 관리 API ==========
+
+    /**
+     * 기업 회원 목록 조회
+     * POST /mypage/admin/members
+     */
+    @PostMapping("/admin/members")
+    public ResponseEntity<List<MemberListResponse>> getMemberList(
+            @RequestBody MemberListRequest request) {
+
+        List<MemberListResponse> members = adminMypageService.getMemberList(request);
+        return ResponseEntity.ok(members);
+    }
+
+    /**
+     * 기업 회원 정보 수정
+     * PUT /mypage/admin/members/update
+     */
+    @PutMapping("/admin/members/update")
+    public ResponseEntity<List<String>> updateMemberInfo(
+            @RequestBody MemberInfoUpdateRequest request) {
+
+        List<String> result = adminMypageService.updateMemberInfo(request);
+        return ResponseEntity.ok(result);
     }
 }
