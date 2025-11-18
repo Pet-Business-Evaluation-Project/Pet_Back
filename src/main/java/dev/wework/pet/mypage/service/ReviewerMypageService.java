@@ -92,6 +92,7 @@ public class ReviewerMypageService {
 
                     return new ReviewerInviteResponse(
                             user.getName(),
+                            user.getLoginID(),
                             user.getPhnum(),
                             grade.getReviewerGrade(),
                             grade.getReferralgrade()
