@@ -13,6 +13,8 @@ import dev.wework.pet.user.signup.repository.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -51,6 +53,8 @@ public class AdminMypageService {
                             .map(grade -> grade.getReferralgrade().name())
                             .orElse("등급이 없습니다.");
 
+                    LocalDate createdAt = reviewer.getUser().getCreated_at();
+
                     return new ReviewerListResponse(
                             reviewer.getUser().getUserId(),
                             reviewer.getReviewerId(),
@@ -63,7 +67,8 @@ public class AdminMypageService {
                             reviewer.getAccount(),
                             CurrentGrade,
                             reviewer.getUser().getReferralID(),
-                            CurrentRefferalGrade
+                            CurrentRefferalGrade,
+                            createdAt
                     );
                 })
                 .distinct()
