@@ -30,6 +30,9 @@ public class SignStartService {
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
                 .orElse("알 수 없음");
 
+        String reviewerName = reviewerRepository.findReviewerNameByReviewerId(signStart.getReviewerId())
+                .orElse("알 수 없음");
+
         return new SignStartResponseDto(
                 signStart.getSignstartId(),
                 signStart.getSignId(),
@@ -42,7 +45,8 @@ public class SignStartService {
                 signStart.getReviewcomplete() != null ? signStart.getReviewcomplete().name() : null,
                 signStart.getAffairdo() != null ? signStart.getAffairdo().name() : null,
                 signStart.getSigncount(),
-                companyName
+                companyName,
+                reviewerName
         );
     }
 
@@ -170,6 +174,9 @@ public class SignStartService {
         String companyName = signRepository.findCompanyNameBySignId(s.getSignId())
                 .orElse("알 수 없음");
 
+        String reviewerName = reviewerRepository.findReviewerNameByReviewerId(s.getReviewerId())
+                .orElse("알 수 없음");
+
         return new SignStartResponseDto(
                 s.getSignstartId(),
                 s.getSignId(),
@@ -182,7 +189,8 @@ public class SignStartService {
                 s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null,
                 s.getAffairdo() != null ? s.getAffairdo().name() : null,
                 s.getSigncount(),
-                companyName
+                companyName,
+                reviewerName
         );
     } //여기까지도 새로 추가한 것
 

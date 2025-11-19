@@ -3,6 +3,7 @@ package dev.wework.pet.user.signup.repository;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,5 +22,13 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
     List<Reviewer> findAllByUserUserIdIn(List<Integer> userIds);
 
     Optional<Reviewer> findBySsn(String ssn);
+
+    @Query("""
+        SELECT u.name
+        FROM Reviewer r
+        JOIN r.user u
+        WHERE r.reviewerId = :reviewerId
+    """)
+    Optional<String> findReviewerNameByReviewerId(@Param("reviewerId") int reviewerId);
 
 }
