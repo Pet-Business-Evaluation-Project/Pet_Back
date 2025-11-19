@@ -1,5 +1,6 @@
 package dev.wework.pet.membersign.entity;
 
+import dev.wework.pet.user.signup.entity.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,11 @@ public class Sign {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sign_id")
     private int signId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", insertable = false, updatable = false)
+    private Member member;
+
 
     @Column(name = "member_id", nullable = false)
     private int memberId; // Member.member_id 숫자만 저장

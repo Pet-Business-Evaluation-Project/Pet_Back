@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,27 @@ public class SignStartService {
     private final SignStartRepository signStartRepository;
     private final ReviewerRepository reviewerRepository; // 추가
     private final MemberRepository memberRepository;
+
+    private SignStartResponseDto mapToDto(SignStart signStart) {
+        SignStartResponseDto dto = new SignStartResponseDto();
+        dto.setSignstartId(signStart.getSignstartId());
+        dto.setSignId(signStart.getSignId());
+        dto.setReviewerId(signStart.getReviewerId());
+        dto.setSigntype(signStart.getSigntype() != null ? signStart.getSigntype().name() : null);
+        dto.setMembergrade(signStart.getMembergrade().name());
+        dto.setSignstate(signStart.getSignstate() != null ? signStart.getSignstate().name() : null);
+        dto.setSigndate(signStart.getSigndate());
+        dto.setEffectivedate(signStart.getEffectivedate());
+        dto.setReviewcomplete(signStart.getReviewcomplete().name());
+        dto.setAffairdo(signStart.getAffairdo().name());
+        dto.setSigncount(signStart.getSigncount());
+
+        String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
+                .orElse("알 수 없음");
+        dto.setName(companyName);
+
+        return dto;
+    }
 
 
     // 권한 체크
@@ -269,19 +291,4 @@ public class SignStartService {
         signStartRepository.deleteAll(signStarts);
     }
 
-    private SignStartResponseDto mapToDto(SignStart signStart) {
-        SignStartResponseDto dto = new SignStartResponseDto();
-        dto.setSignstartId(signStart.getSignstartId());
-        dto.setSignId(signStart.getSignId());
-        dto.setReviewerId(signStart.getReviewerId());
-        dto.setSigntype(signStart.getSigntype() != null ? signStart.getSigntype().name() : null);
-        dto.setMembergrade(signStart.getMembergrade().name());
-        dto.setSignstate(signStart.getSignstate() != null ? signStart.getSignstate().name() : null);
-        dto.setSigndate(signStart.getSigndate());
-        dto.setEffectivedate(signStart.getEffectivedate());
-        dto.setReviewcomplete(signStart.getReviewcomplete().name());
-        dto.setAffairdo(signStart.getAffairdo().name());
-        dto.setSigncount(signStart.getSigncount());
-        return dto;
-    }
 }

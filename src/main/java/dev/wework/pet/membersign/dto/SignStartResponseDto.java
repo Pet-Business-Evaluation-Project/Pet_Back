@@ -19,4 +19,10 @@ public class SignStartResponseDto {
     private String reviewcomplete;
     private String affairdo;
     private int signcount;
+
+    private String name;
+
 }
+
+
+
