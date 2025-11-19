@@ -19,4 +19,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByLoginID(String loginID);
   
     List<User> findByReferralID(String referralID);
+
 }

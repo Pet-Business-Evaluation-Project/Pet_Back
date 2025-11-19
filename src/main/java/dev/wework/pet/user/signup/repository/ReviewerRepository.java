@@ -14,10 +14,12 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
 
     Optional<Reviewer> findByUserUserId(int userId);
 
+
     @Query("SELECT r From Reviewer r " + "JOIN FETCH r.user u " + "LEFT JOIN FETCH r.grades g ")
     List<Reviewer> findAllReviewersWithDetails();
 
     List<Reviewer> findAllByUserUserIdIn(List<Integer> userIds);
 
     Optional<Reviewer> findBySsn(String ssn);
+
 }

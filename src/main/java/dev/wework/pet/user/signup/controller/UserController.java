@@ -1,13 +1,17 @@
 package dev.wework.pet.user.signup.controller;
 
+import dev.wework.pet.user.signup.dto.Request.ReviewerIdRequest;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
+import dev.wework.pet.user.signup.dto.Response.ReviewerIdResponse;
 import dev.wework.pet.user.signup.entity.ApprovalUser;
+import dev.wework.pet.user.signup.entity.Reviewer;
 import dev.wework.pet.user.signup.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -38,5 +42,12 @@ public class UserController {
     public ResponseEntity<List<String>> LoginInfo() {
         List<String> LoginInfo = userService.getLoginID();
         return ResponseEntity.ok(LoginInfo);
+    }
+
+    @PostMapping("/reviwerinfo")
+    public ResponseEntity<ReviewerIdResponse> reviewidinfo(@RequestBody ReviewerIdRequest reviewerIdRequest) {
+        return userService.getReviewerId(reviewerIdRequest.userId())
+                .map(id -> ResponseEntity.ok(new ReviewerIdResponse(id)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }
