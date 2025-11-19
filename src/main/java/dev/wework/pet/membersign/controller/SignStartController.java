@@ -43,6 +43,8 @@ public class SignStartController {
         return ResponseEntity.ok(list);
     }
 
+     //이거 내가 만든거임
+
     // 상세 조회 (권한 체크)
     @GetMapping("/detail/{signstartId}")
     public ResponseEntity<SignStartResponseDto> getSignStartDetail(@PathVariable int signstartId,
