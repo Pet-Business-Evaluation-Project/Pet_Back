@@ -89,17 +89,19 @@ public class AdminMypageService {
 
     @Transactional
     public List<String> updateReviewerGrade(GradeUpdateRequest request) {
-
         List<String> result = new ArrayList<>();
 
-        for(GradeUpdateRequest.GradeUpdateItem item : request.updates()) {
-            Grade grade = gradeRepository.findByReviewerReviewerId(item.reviewer_id())
-                    .orElseThrow(() -> new NotExistReviewerIdException());
+        for (GradeUpdateRequest.GradeUpdateItem item : request.updates()) {
+            Grade latestGrade = gradeRepository
+                    .findTopByReviewerReviewerIdOrderByGradeIdDesc(item.reviewer_id())
+                    .orElseThrow(() -> new NotExistReviewerIdException(
+                            "심사원 ID가 존재하지 않습니다: " + item.reviewer_id()
+                    ));
 
-            grade.setReviewerGrade(item.reviewergrade());
-            gradeRepository.save(grade);
-            System.out.println("수정된 grade = " + grade.getReviewerGrade());
-            result.add("Updated reviewer grade " + grade.getReviewerGrade());
+            latestGrade.setReviewerGrade(item.reviewergrade());
+            gradeRepository.save(latestGrade);
+
+            result.add("심사원 " + item.reviewer_id() + " 등급 → " + item.reviewergrade() + " (변경 완료)");
         }
         return result;
     }
