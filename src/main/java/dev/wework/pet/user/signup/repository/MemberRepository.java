@@ -22,4 +22,6 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     // member_id로 Member 조회
     @Query("SELECT m FROM Member m WHERE m.member_id = :memberId")
     Optional<Member> findByMember_id(@Param("memberId") int memberId);
+
+    Optional<Member> findByUserUserId(int userId);
 }

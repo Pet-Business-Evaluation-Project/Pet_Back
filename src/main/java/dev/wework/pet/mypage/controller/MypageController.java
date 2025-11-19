@@ -126,3 +126,4 @@ public class MypageController {
         return ResponseEntity.ok(result);
     }
 }
+

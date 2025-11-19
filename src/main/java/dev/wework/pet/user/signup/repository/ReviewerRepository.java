@@ -22,4 +22,6 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
 
     Optional<Reviewer> findBySsn(String ssn);
 
+    Optional<Reviewer> findByUserLoginID(String loginID);
+
 }
