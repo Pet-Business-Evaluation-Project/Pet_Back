@@ -5,11 +5,11 @@ public record MemberInfoUpdateRequest(
         List<MemberUpdateItem> updates
 ) {
     public record MemberUpdateItem(
-            int memberId,
-            String email,
-            String companycls,
-            String introduction,
-            String mainsales
+            int member_id,
+            String email,          // 이메일
+            String companycls,     // 사업분류
+            String introduction,   // 회사소개
+            String mainsales       // 주요판매상품
     ) {
     }
 }

@@ -142,6 +142,7 @@ public class AdminMypageService {
                             member.getEmail(),
                             member.getCompanycls(),
                             member.getIntroduction(),
+                            member.getMainsales(),
                             createdAt
                     );
                 })
@@ -159,13 +160,14 @@ public class AdminMypageService {
         List<String> result = new ArrayList<>();
 
         for(MemberInfoUpdateRequest.MemberUpdateItem item : request.updates()) {
-            Member member = memberRepository.findByMember_id(item.memberId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 ID입니다: " + item.memberId()));
+            Member member = memberRepository.findByMember_id(item.member_id())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 ID입니다: " + item.member_id()));
 
             member.updateCompanyInfo(
                     item.email(),
                     item.companycls(),
-                    item.introduction()
+                    item.introduction(),
+                    item.mainsales()
             );
 
             memberRepository.save(member);
