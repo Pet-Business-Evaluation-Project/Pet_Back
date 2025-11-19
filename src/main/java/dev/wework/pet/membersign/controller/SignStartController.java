@@ -6,6 +6,7 @@ import dev.wework.pet.membersign.service.SignStartService;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,22 @@ public class SignStartController {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return signStartService.addReviewersToSign(dto, user);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<SignStartResponseDto>> getAllSignStarts() {
+        List<SignStartResponseDto> list = signStartService.getAllSignStarts();
+        return ResponseEntity.ok(list);
+    }
+
+    // 상세 조회 (권한 체크)
+    @GetMapping("/detail/{signstartId}")
+    public ResponseEntity<SignStartResponseDto> getSignStartDetail(@PathVariable int signstartId,
+                                                                   @RequestHeader("X-USER-ID") int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        SignStartResponseDto dto = signStartService.getSignStartDetail(signstartId, user);
+        return ResponseEntity.ok(dto);
+    } //여기까지도 새로 추가
 
     // sign_id로 조회 (관리자 전체, 심사원 자신만)
     @GetMapping("/bysign/{signId}")

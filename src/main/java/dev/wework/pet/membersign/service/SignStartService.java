@@ -6,6 +6,7 @@ import dev.wework.pet.membersign.entity.*;
 import dev.wework.pet.membersign.repository.SignRepository;
 import dev.wework.pet.membersign.repository.SignStartRepository;
 import dev.wework.pet.user.signup.entity.User;
+import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.dto.Enum.Classification;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,8 @@ public class SignStartService {
     private final SignRepository signRepository;
     private final SignStartRepository signStartRepository;
     private final ReviewerRepository reviewerRepository; // 추가
+    private final MemberRepository memberRepository;
+
 
     // 권한 체크
     private void checkPermission(User user, SignStart signStart) {
@@ -41,6 +44,11 @@ public class SignStartService {
         if (user.getClassification() != Classification.관리자)
             throw new IllegalArgumentException("관리자만 인증을 생성할 수 있습니다.");
 
+        // 🔥 member 존재 여부 체크 추가
+        if (!memberRepository.existsById(dto.getMemberId())) {
+            throw new IllegalArgumentException("존재하지 않는 member_id입니다.");
+        }
+
         Sign sign = new Sign(dto.getMemberId());
         signRepository.save(sign);
 
@@ -52,7 +60,8 @@ public class SignStartService {
             SignStart signStart = new SignStart();
             signStart.setSignId(sign.getSignId());
             signStart.setReviewerId(reviewerId);
-            signStart.setSigntype(SignType.valueOf(dto.getSigntype()));
+            //signStart.setSigntype(SignType.valueOf(dto.getSigntype()));
+            signStart.setSigntype(dto.getSigntype() != null ? SignType.valueOf(dto.getSigntype()) : null);
             signStart.setMembergrade(MemberGrade.valueOf(dto.getMembergrade()));
             signStart.setSignstate(dto.getSignstate() != null ? SignState.valueOf(dto.getSignstate()) : null);
             signStart.setSigndate(dto.getSigndate());
@@ -112,6 +121,60 @@ public class SignStartService {
 
         return responses;
     }
+
+    @Transactional(readOnly = true)
+    public List<SignStartResponseDto> getAllSignStarts() {
+        List<SignStart> allSignStarts = signStartRepository.findAll();
+        List<SignStartResponseDto> responses = new ArrayList<>();
+
+        for (SignStart s : allSignStarts) {
+            SignStartResponseDto dto = new SignStartResponseDto();
+            dto.setSignstartId(s.getSignstartId());
+            dto.setSignId(s.getSignId());
+            dto.setReviewerId(s.getReviewerId());
+            dto.setSigntype(s.getSigntype() != null ? s.getSigntype().name() : null);
+            dto.setMembergrade(s.getMembergrade() != null ? s.getMembergrade().name() : null);
+            dto.setSignstate(s.getSignstate() != null ? s.getSignstate().name() : null);
+            dto.setSigndate(s.getSigndate());
+            dto.setEffectivedate(s.getEffectivedate());
+            dto.setReviewcomplete(s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null);
+            dto.setAffairdo(s.getAffairdo() != null ? s.getAffairdo().name() : null);
+            dto.setSigncount(s.getSigncount());
+
+            // 여기서 심사원이 아닌 경우나 상세 정보는 제한하지 않고, 그냥 리스트용 정보만
+            responses.add(dto);
+        }
+        return responses;
+    }
+
+    // 상세 조회 (권한 체크 포함)
+    @Transactional(readOnly = true)
+    public SignStartResponseDto getSignStartDetail(int signstartId, User user) {
+        SignStart s = signStartRepository.findById(signstartId)
+                .orElseThrow(() -> new IllegalArgumentException("SignStart not found"));
+
+        // 심사원일 경우, 본인에게 배정된 인증만 접근 가능
+        if (user.getClassification() == Classification.심사원) {
+            if (user.getReviewer() == null || s.getReviewerId() != user.getReviewer().getReviewerId()) {
+                throw new IllegalArgumentException("권한이 없습니다. 본인 담당 인증만 접근 가능합니다.");
+            }
+        }
+
+        SignStartResponseDto dto = new SignStartResponseDto();
+        dto.setSignstartId(s.getSignstartId());
+        dto.setSignId(s.getSignId());
+        dto.setReviewerId(s.getReviewerId());
+        dto.setSigntype(s.getSigntype() != null ? s.getSigntype().name() : null);
+        dto.setMembergrade(s.getMembergrade() != null ? s.getMembergrade().name() : null);
+        dto.setSignstate(s.getSignstate() != null ? s.getSignstate().name() : null);
+        dto.setSigndate(s.getSigndate());
+        dto.setEffectivedate(s.getEffectivedate());
+        dto.setReviewcomplete(s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null);
+        dto.setAffairdo(s.getAffairdo() != null ? s.getAffairdo().name() : null);
+        dto.setSigncount(s.getSigncount());
+
+        return dto;
+    } //여기까지도 새로 추가한 것
 
     // sign_id 단위 조회
     @Transactional(readOnly = true)
@@ -211,7 +274,7 @@ public class SignStartService {
         dto.setSignstartId(signStart.getSignstartId());
         dto.setSignId(signStart.getSignId());
         dto.setReviewerId(signStart.getReviewerId());
-        dto.setSigntype(signStart.getSigntype().name());
+        dto.setSigntype(signStart.getSigntype() != null ? signStart.getSigntype().name() : null);
         dto.setMembergrade(signStart.getMembergrade().name());
         dto.setSignstate(signStart.getSignstate() != null ? signStart.getSignstate().name() : null);
         dto.setSigndate(signStart.getSigndate());

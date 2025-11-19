@@ -22,6 +22,7 @@ public class SignStart {
     private int reviewerId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private SignType signtype;
 
     @Enumerated(EnumType.STRING)
