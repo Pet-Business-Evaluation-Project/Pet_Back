@@ -17,7 +17,6 @@ public class Member {
 
     private String sno;  // 사업자 등록번호
 
-    // 새로 추가된 필드들
     @Column(length = 100)
     private String email;  // 이메일
 
@@ -37,8 +36,7 @@ public class Member {
         this.sno = sno;
     }
 
-    public Member(User user, String sno, String email, String companycls,
-                  String introduction, String mainsales) {
+    public Member(User user, String sno, String email, String companycls, String introduction, String mainsales) {
         this.user = user;
         this.sno = sno;
         this.email = email;
@@ -70,8 +68,7 @@ public class Member {
     }
 
     // 회사 정보 일괄 업데이트
-    public void updateCompanyInfo(String email, String companycls,
-                                  String introduction) {
+    public void updateCompanyInfo(String email, String companycls, String introduction, String mainsales) {
         updateEmail(email);
         updateCompanyClassification(companycls);
         updateIntroduction(introduction);

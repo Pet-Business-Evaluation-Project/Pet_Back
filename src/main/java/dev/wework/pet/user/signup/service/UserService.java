@@ -8,16 +8,14 @@ import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
 import dev.wework.pet.user.signup.dto.Request.SignupUserRequest;
 import dev.wework.pet.user.configure.encode.PasswordEncoderBCrypt;
 import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
+import dev.wework.pet.user.signup.dto.Response.ReviewerIdResponse;
 import dev.wework.pet.user.signup.entity.*;
 import dev.wework.pet.user.signup.exception.*;
 import dev.wework.pet.user.signup.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -459,5 +457,10 @@ public class UserService {
         return EXPERTISE_CATEGORIES.values().stream()
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
+    }
+
+    public Optional<Integer> getReviewerId(int userId) {
+        return reviewerRepository.findByUserUserId(userId)
+                .map(Reviewer::getReviewerId);
     }
 }

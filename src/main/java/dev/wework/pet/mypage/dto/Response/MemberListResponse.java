@@ -14,6 +14,7 @@ public record MemberListResponse(
         String email,
         String companycls,
         String introduction,
+        String mainsales,
         LocalDate createdAt
 ) {
 }
