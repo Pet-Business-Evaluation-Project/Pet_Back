@@ -100,19 +100,28 @@ public class SecurityConfigure {
                 "https://kcci.co.kr",
                 "https://www.kcci.co.kr",
                 "https://test.kcci.co.kr",
-                "http://localhost:3000",
-                "http://218.239.151.15:3000"
+                "http://localhost:3000"
         ));
 
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "X-USER-ID",
+                "x-user-id"
+        ));
+
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
+
         configuration.setExposedHeaders(List.of(
-                "Authorization", "Content-Type", "Session-Expires-At"
+                "Authorization",
+                "Content-Type",
+                "Session-Expires-At"
         ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
