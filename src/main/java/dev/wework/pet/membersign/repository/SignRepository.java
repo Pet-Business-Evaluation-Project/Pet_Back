@@ -23,7 +23,6 @@ WHERE s.signId = :signId
 """)
     Optional<String> findCompanyNameBySignId(@Param("signId") int signId);
 
-
 }
 
 
