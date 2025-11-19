@@ -1,5 +1,6 @@
 package dev.wework.pet.mypage.controller;
 
+import dev.wework.pet.exception.NotExistReviewerIdException;
 import dev.wework.pet.mypage.dto.Request.*;
 import dev.wework.pet.mypage.dto.Response.*;
 import dev.wework.pet.mypage.service.AdminMypageService;
@@ -87,9 +88,16 @@ public class MypageController {
     }
 
     @PutMapping("/admin/update")
-    public List<String> GradeUpdate(@RequestBody GradeUpdateRequest request){
-        List<String> result = adminMypageService.updateReviewerGrade(request);
-        return result;
+    public ResponseEntity<?> GradeUpdate(@RequestBody GradeUpdateRequest request) {
+        try {
+            List<String> result = adminMypageService.updateReviewerGrade(request);
+            return ResponseEntity.ok(result);
+        } catch (NotExistReviewerIdException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("서버 오류: " + e.getMessage());
+        }
     }
 
     // ========== 관리자 - 기업 회원 관리 API ==========
