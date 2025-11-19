@@ -27,24 +27,23 @@ public class SignStartService {
     private final MemberRepository memberRepository;
 
     private SignStartResponseDto mapToDto(SignStart signStart) {
-        SignStartResponseDto dto = new SignStartResponseDto();
-        dto.setSignstartId(signStart.getSignstartId());
-        dto.setSignId(signStart.getSignId());
-        dto.setReviewerId(signStart.getReviewerId());
-        dto.setSigntype(signStart.getSigntype() != null ? signStart.getSigntype().name() : null);
-        dto.setMembergrade(signStart.getMembergrade().name());
-        dto.setSignstate(signStart.getSignstate() != null ? signStart.getSignstate().name() : null);
-        dto.setSigndate(signStart.getSigndate());
-        dto.setEffectivedate(signStart.getEffectivedate());
-        dto.setReviewcomplete(signStart.getReviewcomplete().name());
-        dto.setAffairdo(signStart.getAffairdo().name());
-        dto.setSigncount(signStart.getSigncount());
-
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
                 .orElse("알 수 없음");
-        dto.setName(companyName);
 
-        return dto;
+        return new SignStartResponseDto(
+                signStart.getSignstartId(),
+                signStart.getSignId(),
+                signStart.getReviewerId(),
+                signStart.getSigntype() != null ? signStart.getSigntype().name() : null,
+                signStart.getMembergrade() != null ? signStart.getMembergrade().name() : null,
+                signStart.getSignstate() != null ? signStart.getSignstate().name() : null,
+                signStart.getSigndate(),
+                signStart.getEffectivedate(),
+                signStart.getReviewcomplete() != null ? signStart.getReviewcomplete().name() : null,
+                signStart.getAffairdo() != null ? signStart.getAffairdo().name() : null,
+                signStart.getSigncount(),
+                companyName
+        );
     }
 
 
@@ -150,21 +149,7 @@ public class SignStartService {
         List<SignStartResponseDto> responses = new ArrayList<>();
 
         for (SignStart s : allSignStarts) {
-            SignStartResponseDto dto = new SignStartResponseDto();
-            dto.setSignstartId(s.getSignstartId());
-            dto.setSignId(s.getSignId());
-            dto.setReviewerId(s.getReviewerId());
-            dto.setSigntype(s.getSigntype() != null ? s.getSigntype().name() : null);
-            dto.setMembergrade(s.getMembergrade() != null ? s.getMembergrade().name() : null);
-            dto.setSignstate(s.getSignstate() != null ? s.getSignstate().name() : null);
-            dto.setSigndate(s.getSigndate());
-            dto.setEffectivedate(s.getEffectivedate());
-            dto.setReviewcomplete(s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null);
-            dto.setAffairdo(s.getAffairdo() != null ? s.getAffairdo().name() : null);
-            dto.setSigncount(s.getSigncount());
-
-            // 여기서 심사원이 아닌 경우나 상세 정보는 제한하지 않고, 그냥 리스트용 정보만
-            responses.add(dto);
+            responses.add(mapToDto(s));
         }
         return responses;
     }
@@ -182,20 +167,23 @@ public class SignStartService {
             }
         }
 
-        SignStartResponseDto dto = new SignStartResponseDto();
-        dto.setSignstartId(s.getSignstartId());
-        dto.setSignId(s.getSignId());
-        dto.setReviewerId(s.getReviewerId());
-        dto.setSigntype(s.getSigntype() != null ? s.getSigntype().name() : null);
-        dto.setMembergrade(s.getMembergrade() != null ? s.getMembergrade().name() : null);
-        dto.setSignstate(s.getSignstate() != null ? s.getSignstate().name() : null);
-        dto.setSigndate(s.getSigndate());
-        dto.setEffectivedate(s.getEffectivedate());
-        dto.setReviewcomplete(s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null);
-        dto.setAffairdo(s.getAffairdo() != null ? s.getAffairdo().name() : null);
-        dto.setSigncount(s.getSigncount());
+        String companyName = signRepository.findCompanyNameBySignId(s.getSignId())
+                .orElse("알 수 없음");
 
-        return dto;
+        return new SignStartResponseDto(
+                s.getSignstartId(),
+                s.getSignId(),
+                s.getReviewerId(),
+                s.getSigntype() != null ? s.getSigntype().name() : null,
+                s.getMembergrade() != null ? s.getMembergrade().name() : null,
+                s.getSignstate() != null ? s.getSignstate().name() : null,
+                s.getSigndate(),
+                s.getEffectivedate(),
+                s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null,
+                s.getAffairdo() != null ? s.getAffairdo().name() : null,
+                s.getSigncount(),
+                companyName
+        );
     } //여기까지도 새로 추가한 것
 
     // sign_id 단위 조회
