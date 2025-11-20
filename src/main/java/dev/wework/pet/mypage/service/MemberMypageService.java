@@ -1,8 +1,13 @@
 package dev.wework.pet.mypage.service;
 
+import dev.wework.pet.membersign.entity.ReviewComplete;
+import dev.wework.pet.membersign.entity.SignStart;
+import dev.wework.pet.membersign.repository.SignRepository;
+import dev.wework.pet.membersign.repository.SignStartRepository;
 import dev.wework.pet.mypage.dto.Request.MemberMypageUpdateRequest;
 import dev.wework.pet.mypage.dto.Response.MemberMypageResponse;
 import dev.wework.pet.mypage.dto.Response.MemberMypageUpdateResponse;
+import dev.wework.pet.mypage.dto.Response.MemberSignStatusResponse;
 import dev.wework.pet.user.signup.entity.Member;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import dev.wework.pet.user.signup.entity.User;
@@ -23,13 +28,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MemberMypageService {
 
+
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
     private final ReviewerRepository reviewerRepository;
+    private final SignStartRepository signStartRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -38,11 +46,15 @@ public class MemberMypageService {
     public MemberMypageService(
             UserRepository userRepository,
             MemberRepository memberRepository,
-            ReviewerRepository reviewerRepository
+            ReviewerRepository reviewerRepository,
+            SignStartRepository signStartRepository
+
     ) {
         this.userRepository = userRepository;
         this.memberRepository = memberRepository;
         this.reviewerRepository = reviewerRepository;
+        this.signStartRepository = signStartRepository;
+
     }
 
     /**
@@ -53,7 +65,7 @@ public class MemberMypageService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(NotExistUserIdException::new);
 
-        Member member = memberRepository.findByUserUserId(userId)
+        Member member = memberRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"기업 회원 정보가 없습니다."));
 
         // 추천한 리뷰어 조회 (referralID → Reviewer.user.loginID)
@@ -81,7 +93,7 @@ public class MemberMypageService {
         User user = userRepository.findByUserId(request.userId())
                 .orElseThrow(NotExistUserIdException::new);
 
-        Member member = memberRepository.findByUserUserId(request.userId())
+        Member member = memberRepository.findByUser_UserId(request.userId())
                 .orElseThrow(() -> new RuntimeException("기업 상세 정보가 존재하지 않습니다."));
 
         // User (기업 기본정보) 업데이트
@@ -154,4 +166,42 @@ public class MemberMypageService {
 
         return filename;
     }
+    public List<MemberSignStatusResponse> getMemberSignStatus(int userId) {
+
+        // memberId 조회
+        Member member = memberRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("기업 회원 정보가 없습니다."));
+
+        // SignStart 조회
+        List<SignStart> signStarts = signStartRepository.findByMemberId(member.getMember_id());
+
+        // DTO 변환
+        return signStarts.stream()
+                .map(ss -> {
+                    if (ss.getReviewcomplete() == ReviewComplete.진행중) {
+                        // 진행중이면 상세 정보 숨김
+                        return new MemberSignStatusResponse(
+                                ss.getSignId(),
+                                null, // signtype 숨김
+                                ss.getReviewcomplete(),
+                                null, // signdate 숨김
+                                null, // effecttime 숨김
+                                null  // signstate 숨김
+                        );
+                    } else {
+                        // 심사 완료이면 모든 정보 보여줌
+                        return new MemberSignStatusResponse(
+                                ss.getSignId(),
+                                ss.getSigntype(),
+                                ss.getReviewcomplete(),
+                                ss.getSigndate(),
+                                ss.getEffectivedate(),
+                                ss.getSignstate()
+                        );
+                    }
+                })
+                .toList();
+    }
 }
+
+

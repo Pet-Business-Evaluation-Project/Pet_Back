@@ -23,5 +23,5 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     @Query("SELECT m FROM Member m WHERE m.member_id = :memberId")
     Optional<Member> findByMember_id(@Param("memberId") int memberId);
 
-    Optional<Member> findByUserUserId(int userId);
+    Optional<Member> findByUser_UserId(int userId);
 }
