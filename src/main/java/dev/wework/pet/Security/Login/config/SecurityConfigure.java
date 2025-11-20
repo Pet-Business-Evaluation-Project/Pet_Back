@@ -68,9 +68,9 @@ public class SecurityConfigure {
                                 "/actuator/**",
                                 "/error",
                                 "/community/**",
-                                  "/expertise/**",
-                                "signstart/**"
+                                "/expertise/**"
                         ).permitAll()
+                        .requestMatchers("/signstart/**").hasAnyRole("ADMIN", "REVIEWER","COMPANY")
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/api/admin/**","/admin/approval/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
