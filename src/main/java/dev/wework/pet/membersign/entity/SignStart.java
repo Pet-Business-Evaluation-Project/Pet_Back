@@ -15,8 +15,13 @@ public class SignStart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int signstartId;
+
     @Column(name = "sign_id", nullable = false)
     private int signId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sign_id", insertable = false, updatable = false)
+    private Sign sign;
 
     @Column(name = "reviewer_id", nullable = false)
     private int reviewerId;
