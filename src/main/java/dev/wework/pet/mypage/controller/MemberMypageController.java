@@ -51,14 +51,7 @@ public class MemberMypageController {
 
     @PutMapping("/update")
     public ResponseEntity<MemberMypageUpdateResponse> updateMemberInfo(
-            @PathVariable int userId,
             @RequestBody MemberMypageUpdateRequest request) {
-
-        // userId 검증
-        if (userId != request.userId()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(null); // 또는 메시지 반환
-        }
 
         try {
             MemberMypageUpdateResponse response = memberMypageService.updateMemberInfo(request);
