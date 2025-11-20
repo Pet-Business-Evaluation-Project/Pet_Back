@@ -70,7 +70,6 @@ public class SecurityConfigure {
                                 "/community/**",
                                 "/expertise/**"
                         ).permitAll()
-                        .requestMatchers("/signstart/**").hasAnyRole("ADMIN", "REVIEWER","COMPANY")
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/api/admin/**","/admin/approval/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
