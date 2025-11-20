@@ -2,7 +2,9 @@ package dev.wework.pet.membersign.controller;
 
 import dev.wework.pet.membersign.dto.SignStartRequestDto;
 import dev.wework.pet.membersign.dto.SignStartResponseDto;
+import dev.wework.pet.membersign.repository.SignRepository;
 import dev.wework.pet.membersign.service.SignStartService;
+import dev.wework.pet.user.signup.dto.Enum.Classification;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class SignStartController {
 
     private final SignStartService signStartService;
     private final UserRepository userRepository;
+    private final SignRepository signRepository;
 
     // 여러 심사원 한 번에 생성 (새로운 sign_id)
     @PostMapping("/create")
@@ -100,5 +103,18 @@ public class SignStartController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         signStartService.deleteSignStart(id, user);
+    }
+
+    @DeleteMapping("/deletesign/{signId}")
+    public void deleteSign(@PathVariable("signId") int signId,
+                           @RequestHeader("X-USER-ID") int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getClassification() != Classification.관리자) {
+            throw new IllegalArgumentException("관리자만 삭제 가능합니다.");
+        }
+
+        signRepository.deleteById(signId);
     }
 }

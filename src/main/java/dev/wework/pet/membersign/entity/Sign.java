@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -25,6 +27,10 @@ public class Sign {
 
     @Column(name = "member_id", nullable = false)
     private int memberId; // Member.member_id 숫자만 저장
+
+    @OneToMany(mappedBy = "sign", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SignStart> signStarts = new ArrayList<>();
+
 
     protected Sign() {}
 

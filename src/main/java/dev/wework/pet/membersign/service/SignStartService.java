@@ -287,4 +287,23 @@ public class SignStartService {
         signStartRepository.deleteAll(signStarts);
     }
 
+    @Transactional
+    public void deleteSign(int signId, User user) {
+        if (user.getClassification() != Classification.관리자) {
+            throw new IllegalArgumentException("관리자만 Sign을 삭제할 수 있습니다.");
+        }
+
+        // Sign 존재 여부 확인
+        Sign sign = signRepository.findById(signId)
+                .orElseThrow(() -> new IllegalArgumentException("Sign not found"));
+
+        // 연관된 SignStart가 있는지 확인 (선택사항 - 안전장치)
+        List<SignStart> relatedSignStarts = signStartRepository.findBySignId(signId);
+        if (!relatedSignStarts.isEmpty()) {
+            throw new IllegalArgumentException("연관된 SignStart가 존재합니다. 먼저 SignStart를 삭제하세요.");
+        }
+
+        signRepository.delete(sign);
+    }
+
 }
