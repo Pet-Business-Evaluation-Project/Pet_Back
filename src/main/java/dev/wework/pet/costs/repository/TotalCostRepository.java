@@ -16,4 +16,11 @@ public interface TotalCostRepository extends JpaRepository<TotalCost, Integer> {
 
     @Query("SELECT t FROM TotalCost t WHERE t.year = :year ORDER BY t.month DESC")
     List<TotalCost> findByYear(@Param("year") Integer year);
+
+    // ✅ 전체 합계
+    @Query("SELECT COALESCE(SUM(t.totalcost), 0) FROM TotalCost t")
+    Long sumAllTotalCosts();
+
+    @Query("SELECT COALESCE(SUM(t.totalcost), 0) FROM TotalCost t WHERE t.year = :year AND t.month = :month")
+    Long sumByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);
 }

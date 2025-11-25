@@ -1,3 +1,4 @@
+// ReferralCostRepository.java
 package dev.wework.pet.costs.repository;
 
 import dev.wework.pet.costs.entity.*;
@@ -6,8 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
-
 @Repository
 public interface ReferralCostRepository extends JpaRepository<ReferralCost, Integer> {
     List<ReferralCost> findByUserId(Integer userId);
@@ -17,4 +16,7 @@ public interface ReferralCostRepository extends JpaRepository<ReferralCost, Inte
 
     @Query("SELECT SUM(c.referralcost) FROM ReferralCost c WHERE YEAR(c.createdat) = :year AND MONTH(c.createdat) = :month")
     Long sumCostByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);
+
+    @Query("SELECT COALESCE(SUM(c.referralcost), 0) FROM ReferralCost c")
+    Long sumAllReferralCosts();
 }

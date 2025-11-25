@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface InviteCostRepository extends JpaRepository<InviteCost, Integer> {
@@ -17,5 +16,7 @@ public interface InviteCostRepository extends JpaRepository<InviteCost, Integer>
 
     @Query("SELECT SUM(c.invitecost) FROM InviteCost c WHERE YEAR(c.createdat) = :year AND MONTH(c.createdat) = :month")
     Long sumCostByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);
-}
 
+    @Query("SELECT COALESCE(SUM(c.invitecost), 0) FROM InviteCost c")
+    Long sumAllInviteCosts();
+}
