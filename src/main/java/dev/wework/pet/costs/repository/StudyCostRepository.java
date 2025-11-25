@@ -1,3 +1,4 @@
+// StudyCostRepository.java
 package dev.wework.pet.costs.repository;
 
 import dev.wework.pet.costs.entity.*;
@@ -6,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface StudyCostRepository extends JpaRepository<StudyCost, Integer> {
@@ -17,4 +17,7 @@ public interface StudyCostRepository extends JpaRepository<StudyCost, Integer> {
 
     @Query("SELECT SUM(c.studycost) FROM StudyCost c WHERE YEAR(c.createdat) = :year AND MONTH(c.createdat) = :month")
     Long sumCostByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);
+
+    @Query("SELECT COALESCE(SUM(c.studycost), 0) FROM StudyCost c")
+    Long sumAllStudyCosts();
 }

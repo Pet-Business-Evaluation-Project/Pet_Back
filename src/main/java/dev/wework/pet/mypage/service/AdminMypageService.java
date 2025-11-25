@@ -1,5 +1,6 @@
 package dev.wework.pet.mypage.service;
 
+import dev.wework.pet.costs.repository.*;
 import dev.wework.pet.exception.NotExistReviewerIdException;
 import dev.wework.pet.membersign.entity.ReviewComplete;
 import dev.wework.pet.membersign.repository.SignStartRepository;
@@ -17,7 +18,6 @@ import dev.wework.pet.user.signup.repository.GradeRepository;
 import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,26 +33,45 @@ public class AdminMypageService {
     private final ReviewerRepository reviewerRepository;
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
-
     private final SignStartRepository signStartRepository;
+    private final ChargeCostRepository chargeCostRepository;
+    private final InviteCostRepository inviteCostRepository;
+    private final ReferralCostRepository referralCostRepository;
+    private final ReviewCostRepository reviewCostRepository;
+    private final StudyCostRepository studyCostRepository;
+    private final TotalCostRepository totalCostRepository;
 
-
-    public AdminMypageService(GradeRepository gradeRepository,
-                              ReviewerRepository reviewerRepository,
-                              UserRepository userRepository,
-                              MemberRepository memberRepository, SignStartRepository signStartRepository) {
+    public AdminMypageService(
+            GradeRepository gradeRepository,
+            ReviewerRepository reviewerRepository,
+            UserRepository userRepository,
+            MemberRepository memberRepository,
+            SignStartRepository signStartRepository,
+            ChargeCostRepository chargeCostRepository,
+            InviteCostRepository inviteCostRepository,
+            ReferralCostRepository referralCostRepository,
+            ReviewCostRepository reviewCostRepository,
+            StudyCostRepository studyCostRepository,
+            TotalCostRepository totalCostRepository
+    ) {
         this.gradeRepository = gradeRepository;
         this.reviewerRepository = reviewerRepository;
         this.userRepository = userRepository;
         this.memberRepository = memberRepository;
         this.signStartRepository = signStartRepository;
+        this.chargeCostRepository = chargeCostRepository;
+        this.inviteCostRepository = inviteCostRepository;
+        this.referralCostRepository = referralCostRepository;
+        this.reviewCostRepository = reviewCostRepository;
+        this.studyCostRepository = studyCostRepository;
+        this.totalCostRepository = totalCostRepository;
     }
 
     // ========== 기존 심사원 관리 메서드 ==========
 
-    public List<ReviewerListResponse> getReviewerList(ReviewerListRequest request){
+    public List<ReviewerListResponse> getReviewerList(ReviewerListRequest request) {
 
-        if(request.classification() != Classification.관리자) {
+        if (request.classification() != Classification.관리자) {
             throw new AccessDeniedException("관리자만 접근 가능한 페이지입니다.");
         }
 
@@ -114,17 +133,9 @@ public class AdminMypageService {
 
     // ========== 기업 회원 관리 메서드 ==========
 
-    /**
-     * 기업 회원 목록 조회
-     * 필드: 아이디, 사업자등록번호, 주소, 전화번호, 담당자, 대표자명, 이메일, 사업분류, 회사소개
-     */
-    /**
-     * 기업 회원 목록 조회
-     * 필드: 아이디, 사업자등록번호, 주소, 전화번호, 담당자, 대표자명, 이메일, 사업분류, 회사소개
-     */
     public List<MemberListResponse> getMemberList(MemberListRequest request) {
 
-        if(request.classification() != Classification.관리자) {
+        if (request.classification() != Classification.관리자) {
             throw new AccessDeniedException("관리자만 접근 가능한 페이지입니다.");
         }
 
@@ -135,7 +146,6 @@ public class AdminMypageService {
                 .map(member -> {
                     LocalDate createdAt = member.getUser().getCreated_at();
 
-                    // ⭐ Response 생성자 순서에 맞춰서 넣기!
                     return new MemberListResponse(
                             member.getUser().getUserId(),
                             member.getMember_id(),
@@ -156,16 +166,12 @@ public class AdminMypageService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 기업 회원 정보 업데이트
-     * 수정 가능 필드: 이메일, 사업분류, 회사소개
-     */
     @Transactional
     public List<String> updateMemberInfo(MemberInfoUpdateRequest request) {
 
         List<String> result = new ArrayList<>();
 
-        for(MemberInfoUpdateRequest.MemberUpdateItem item : request.updates()) {
+        for (MemberInfoUpdateRequest.MemberUpdateItem item : request.updates()) {
             Member member = memberRepository.findByMember_id(item.member_id())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 ID입니다: " + item.member_id()));
 
@@ -185,23 +191,46 @@ public class AdminMypageService {
         return result;
     }
 
-    public long getTotalReviewerCount(){
+    // ========== 대시보드 통계 메서드 ==========
+
+    public long getTotalReviewerCount() {
         return reviewerRepository.count();
     }
 
-    public long getTotalMemberCount(){
+    public long getTotalMemberCount() {
         return memberRepository.count();
     }
 
-    public long getPendingReviewCount(){
-        return signStartRepository.countByReviewcomplete(ReviewComplete.진행중);
+    public long getPendingReviewCount() {
+        return signStartRepository.countByReviewcompleteNot(ReviewComplete.진행중);
     }
+
 
     public Map<String, Long> getDashboardStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("totalReviewers", reviewerRepository.count());
         stats.put("totalCompanies", memberRepository.count());
         stats.put("pendingReviews", getPendingReviewCount());
+        return stats;
+    }
+
+
+    public Map<String, Long> getDashboardAllStats() {
+        Map<String, Long> stats = new HashMap<>();
+
+
+        stats.put("totalReviewers", reviewerRepository.count());
+        stats.put("totalCompanies", memberRepository.count());
+        stats.put("pendingReviews", getPendingReviewCount());
+
+
+        stats.put("chargeCost", chargeCostRepository.sumAllChargeCosts());
+        stats.put("inviteCost", inviteCostRepository.sumAllInviteCosts());
+        stats.put("referralCost", referralCostRepository.sumAllReferralCosts());
+        stats.put("reviewCost", reviewCostRepository.sumAllReviewCosts());
+        stats.put("studyCost", studyCostRepository.sumAllStudyCosts());
+        stats.put("totalCost", totalCostRepository.sumAllTotalCosts());
+
         return stats;
     }
 }
