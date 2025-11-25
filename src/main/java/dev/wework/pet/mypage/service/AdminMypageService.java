@@ -1,6 +1,7 @@
 package dev.wework.pet.mypage.service;
 
 import dev.wework.pet.exception.NotExistReviewerIdException;
+import dev.wework.pet.membersign.repository.SignStartRepository;
 import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.MemberInfoUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.MemberListRequest;
@@ -15,14 +16,13 @@ import dev.wework.pet.user.signup.repository.GradeRepository;
 import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +33,18 @@ public class AdminMypageService {
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
 
+    private final SignStartRepository signStartRepository;
+
+
     public AdminMypageService(GradeRepository gradeRepository,
                               ReviewerRepository reviewerRepository,
                               UserRepository userRepository,
-                              MemberRepository memberRepository) {
+                              MemberRepository memberRepository, SignStartRepository signStartRepository) {
         this.gradeRepository = gradeRepository;
         this.reviewerRepository = reviewerRepository;
         this.userRepository = userRepository;
         this.memberRepository = memberRepository;
+        this.signStartRepository = signStartRepository;
     }
 
     // ========== 기존 심사원 관리 메서드 ==========
@@ -178,5 +182,21 @@ public class AdminMypageService {
         }
 
         return result;
+    }
+
+    public long getTotalReviewerCount(){
+        return reviewerRepository.count();
+    }
+
+    public long getTotalMemberCount(){
+        return memberRepository.count();
+    }
+
+    public Map<String, Long> getDashboardStats() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalReviewers", reviewerRepository.count());
+        stats.put("totalCompanies", memberRepository.count());
+        stats.put("pendingReviews", signStartRepository.count());
+        return stats;
     }
 }

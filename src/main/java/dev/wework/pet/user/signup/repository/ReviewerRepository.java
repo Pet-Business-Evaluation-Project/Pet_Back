@@ -32,4 +32,6 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
     """)
     Optional<String> findReviewerNameByReviewerId(@Param("reviewerId") int reviewerId);
 
+
+
 }
