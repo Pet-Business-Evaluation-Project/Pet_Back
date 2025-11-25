@@ -77,6 +77,7 @@ public class AdminMypageService {
                             reviewer.getUser().getAddress(),
                             reviewer.getBankName(),
                             reviewer.getAccount(),
+                            reviewer.getExpertises(),
                             CurrentGrade,
                             reviewer.getUser().getReferralID(),
                             CurrentRefferalGrade,
