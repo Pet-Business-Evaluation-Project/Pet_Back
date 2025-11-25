@@ -27,6 +27,8 @@ public interface ApprovalUserRepository extends JpaRepository<ApprovalUser, Inte
      */
     List<ApprovalUser> findByApprovalStatus(ApprovalStatus status);
 
+
+
     /**
      * 분류와 승인 상태로 조회
      */
