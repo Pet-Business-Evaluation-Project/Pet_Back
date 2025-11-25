@@ -1,6 +1,7 @@
 package dev.wework.pet.mypage.service;
 
 import dev.wework.pet.exception.NotExistReviewerIdException;
+import dev.wework.pet.membersign.entity.ReviewComplete;
 import dev.wework.pet.membersign.repository.SignStartRepository;
 import dev.wework.pet.mypage.dto.Request.GradeUpdateRequest;
 import dev.wework.pet.mypage.dto.Request.MemberInfoUpdateRequest;
@@ -193,7 +194,7 @@ public class AdminMypageService {
     }
 
     public long getPendingReviewCount(){
-        return signStartRepository.countByReviewcomplete("진행중");
+        return signStartRepository.countByReviewcomplete(ReviewComplete.진행중);
     }
 
     public Map<String, Long> getDashboardStats() {
