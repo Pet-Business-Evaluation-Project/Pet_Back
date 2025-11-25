@@ -192,11 +192,15 @@ public class AdminMypageService {
         return memberRepository.count();
     }
 
+    public long getPendingReviewCount(){
+        return signStartRepository.countByReviewcomplete("진행중");
+    }
+
     public Map<String, Long> getDashboardStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("totalReviewers", reviewerRepository.count());
         stats.put("totalCompanies", memberRepository.count());
-        stats.put("pendingReviews", signStartRepository.count());
+        stats.put("pendingReviews", getPendingReviewCount());
         return stats;
     }
 }

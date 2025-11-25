@@ -23,6 +23,8 @@ public interface SignStartRepository extends JpaRepository<SignStart, Integer> {
     @Query("SELECT ss FROM SignStart ss JOIN Sign s ON ss.signId = s.signId WHERE s.memberId = :memberId")
     List<SignStart> findByMemberId(@Param("memberId") int memberId);
 
+    long countByReviewcomplete(String reviewcomplete);
+    long countByReviewcompleteNot(String reviewcomplete);
 
 }
 
