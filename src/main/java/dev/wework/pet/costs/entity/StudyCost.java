@@ -27,6 +27,8 @@ public class StudyCost {
 
     @Column(name = "createdat")
     private LocalDateTime createdat;
+    @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
+    private String paymentStatus = "미지급";
 
     public StudyCost(Integer userId, Long studycost) {
         this.userId = userId;

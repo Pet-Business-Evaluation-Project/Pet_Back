@@ -28,6 +28,8 @@ public class ReviewCost {
     @Column(name = "createdat")
     private LocalDateTime createdat;
 
+    @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
+    private String paymentStatus = "미지급";
     public ReviewCost(Integer userId, Long reviewcost) {
         this.userId = userId;
         this.reviewcost = reviewcost;

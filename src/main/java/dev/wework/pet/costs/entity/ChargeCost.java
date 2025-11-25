@@ -30,6 +30,8 @@ public class ChargeCost {
     @Column(name = "createdat")
     private LocalDateTime createdat;
 
+    @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
+    private String paymentStatus = "미지급";
     public ChargeCost(Integer userId, Long chargecost) {
         this.userId = userId;
         this.chargecost = chargecost;

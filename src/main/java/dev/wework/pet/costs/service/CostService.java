@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,7 +24,10 @@ public class CostService {
     private final TotalCostRepository totalCostRepository;
     private final UserRepository userRepository;
 
-    // userId 유효성 검증 메서드
+    // ========================================
+    // 유효성 검증 Helper 메서드
+    // ========================================
+
     private void validateUserId(Integer userId) {
         if (userId == null) {
             throw new IllegalArgumentException("userId는 필수입니다.");
@@ -34,7 +37,443 @@ public class CostService {
         }
     }
 
-    // 1. 각 테이블별 전체 비용 조회
+    private void validatePaymentStatus(String paymentStatus) {
+        if (!paymentStatus.equals("지급") && !paymentStatus.equals("미지급")) {
+            throw new IllegalArgumentException("지급 상태는 '지급' 또는 '미지급'만 가능합니다.");
+        }
+    }
+
+    // ========================================
+    // 1. 지급 상태 포함 조회 메서드
+    // ========================================
+
+    public CostListResponseDto getChargeCostsWithPaymentStatus() {
+        List<ChargeCost> costs = chargeCostRepository.findAll();
+        List<CostResponseDto> dtos = costs.stream()
+                .map(c -> {
+                    String userName = userRepository.findById(c.getUserId())
+                            .map(user -> user.getName())
+                            .orElse("Unknown");
+
+                    return CostResponseDto.builder()
+                            .id(c.getChargecostid())
+                            .userId(c.getUserId())
+                            .userName(userName)
+                            .cost(c.getChargecost())
+                            .paymentStatus(c.getPaymentStatus())
+                            .createdat(c.getCreatedat())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        Long total = dtos.stream().mapToLong(CostResponseDto::getCost).sum();
+
+        return CostListResponseDto.builder()
+                .costType("charge")
+                .costs(dtos)
+                .totalAmount(total)
+                .build();
+    }
+
+    public CostListResponseDto getInviteCostsWithPaymentStatus() {
+        List<InviteCost> costs = inviteCostRepository.findAll();
+        List<CostResponseDto> dtos = costs.stream()
+                .map(c -> {
+                    String userName = userRepository.findById(c.getUserId())
+                            .map(user -> user.getName())
+                            .orElse("Unknown");
+
+                    return CostResponseDto.builder()
+                            .id(c.getInvitecostid())
+                            .userId(c.getUserId())
+                            .userName(userName)
+                            .cost(c.getInvitecost())
+                            .paymentStatus(c.getPaymentStatus())
+                            .createdat(c.getCreatedat())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        Long total = dtos.stream().mapToLong(CostResponseDto::getCost).sum();
+
+        return CostListResponseDto.builder()
+                .costType("invite")
+                .costs(dtos)
+                .totalAmount(total)
+                .build();
+    }
+
+    public CostListResponseDto getReferralCostsWithPaymentStatus() {
+        List<ReferralCost> costs = referralCostRepository.findAll();
+        List<CostResponseDto> dtos = costs.stream()
+                .map(c -> {
+                    String userName = userRepository.findById(c.getUserId())
+                            .map(user -> user.getName())
+                            .orElse("Unknown");
+
+                    return CostResponseDto.builder()
+                            .id(c.getReferralcostid())
+                            .userId(c.getUserId())
+                            .userName(userName)
+                            .cost(c.getReferralcost())
+                            .paymentStatus(c.getPaymentStatus())
+                            .createdat(c.getCreatedat())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        Long total = dtos.stream().mapToLong(CostResponseDto::getCost).sum();
+
+        return CostListResponseDto.builder()
+                .costType("referral")
+                .costs(dtos)
+                .totalAmount(total)
+                .build();
+    }
+
+    public CostListResponseDto getReviewCostsWithPaymentStatus() {
+        List<ReviewCost> costs = reviewCostRepository.findAll();
+        List<CostResponseDto> dtos = costs.stream()
+                .map(c -> {
+                    String userName = userRepository.findById(c.getUserId())
+                            .map(user -> user.getName())
+                            .orElse("Unknown");
+
+                    return CostResponseDto.builder()
+                            .id(c.getReviewcostid())
+                            .userId(c.getUserId())
+                            .userName(userName)
+                            .cost(c.getReviewcost())
+                            .paymentStatus(c.getPaymentStatus())
+                            .createdat(c.getCreatedat())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        Long total = dtos.stream().mapToLong(CostResponseDto::getCost).sum();
+
+        return CostListResponseDto.builder()
+                .costType("review")
+                .costs(dtos)
+                .totalAmount(total)
+                .build();
+    }
+
+    public CostListResponseDto getStudyCostsWithPaymentStatus() {
+        List<StudyCost> costs = studyCostRepository.findAll();
+        List<CostResponseDto> dtos = costs.stream()
+                .map(c -> {
+                    String userName = userRepository.findById(c.getUserId())
+                            .map(user -> user.getName())
+                            .orElse("Unknown");
+
+                    return CostResponseDto.builder()
+                            .id(c.getStudycostid())
+                            .userId(c.getUserId())
+                            .userName(userName)
+                            .cost(c.getStudycost())
+                            .paymentStatus(c.getPaymentStatus())
+                            .createdat(c.getCreatedat())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        Long total = dtos.stream().mapToLong(CostResponseDto::getCost).sum();
+
+        return CostListResponseDto.builder()
+                .costType("study")
+                .costs(dtos)
+                .totalAmount(total)
+                .build();
+    }
+
+    // ========================================
+    // 2. 지급 상태 업데이트 메서드
+    // ========================================
+
+    @Transactional
+    public CostResponseDto updateChargeCostPaymentStatus(Integer id, String paymentStatus) {
+        validatePaymentStatus(paymentStatus);
+
+        ChargeCost cost = chargeCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ChargeCost not found with id: " + id));
+
+        cost.setPaymentStatus(paymentStatus);
+        ChargeCost updated = chargeCostRepository.save(cost);
+
+        String userName = userRepository.findById(updated.getUserId())
+                .map(user -> user.getName())
+                .orElse("Unknown");
+
+        return CostResponseDto.builder()
+                .id(updated.getChargecostid())
+                .userId(updated.getUserId())
+                .userName(userName)
+                .cost(updated.getChargecost())
+                .paymentStatus(updated.getPaymentStatus())
+                .createdat(updated.getCreatedat())
+                .build();
+    }
+
+    @Transactional
+    public CostResponseDto updateInviteCostPaymentStatus(Integer id, String paymentStatus) {
+        validatePaymentStatus(paymentStatus);
+
+        InviteCost cost = inviteCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("InviteCost not found with id: " + id));
+
+        cost.setPaymentStatus(paymentStatus);
+        InviteCost updated = inviteCostRepository.save(cost);
+
+        String userName = userRepository.findById(updated.getUserId())
+                .map(user -> user.getName())
+                .orElse("Unknown");
+
+        return CostResponseDto.builder()
+                .id(updated.getInvitecostid())
+                .userId(updated.getUserId())
+                .userName(userName)
+                .cost(updated.getInvitecost())
+                .paymentStatus(updated.getPaymentStatus())
+                .createdat(updated.getCreatedat())
+                .build();
+    }
+
+    @Transactional
+    public CostResponseDto updateReferralCostPaymentStatus(Integer id, String paymentStatus) {
+        validatePaymentStatus(paymentStatus);
+
+        ReferralCost cost = referralCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ReferralCost not found with id: " + id));
+
+        cost.setPaymentStatus(paymentStatus);
+        ReferralCost updated = referralCostRepository.save(cost);
+
+        String userName = userRepository.findById(updated.getUserId())
+                .map(user -> user.getName())
+                .orElse("Unknown");
+
+        return CostResponseDto.builder()
+                .id(updated.getReferralcostid())
+                .userId(updated.getUserId())
+                .userName(userName)
+                .cost(updated.getReferralcost())
+                .paymentStatus(updated.getPaymentStatus())
+                .createdat(updated.getCreatedat())
+                .build();
+    }
+
+    @Transactional
+    public CostResponseDto updateReviewCostPaymentStatus(Integer id, String paymentStatus) {
+        validatePaymentStatus(paymentStatus);
+
+        ReviewCost cost = reviewCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ReviewCost not found with id: " + id));
+
+        cost.setPaymentStatus(paymentStatus);
+        ReviewCost updated = reviewCostRepository.save(cost);
+
+        String userName = userRepository.findById(updated.getUserId())
+                .map(user -> user.getName())
+                .orElse("Unknown");
+
+        return CostResponseDto.builder()
+                .id(updated.getReviewcostid())
+                .userId(updated.getUserId())
+                .userName(userName)
+                .cost(updated.getReviewcost())
+                .paymentStatus(updated.getPaymentStatus())
+                .createdat(updated.getCreatedat())
+                .build();
+    }
+
+    @Transactional
+    public CostResponseDto updateStudyCostPaymentStatus(Integer id, String paymentStatus) {
+        validatePaymentStatus(paymentStatus);
+
+        StudyCost cost = studyCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("StudyCost not found with id: " + id));
+
+        cost.setPaymentStatus(paymentStatus);
+        StudyCost updated = studyCostRepository.save(cost);
+
+        String userName = userRepository.findById(updated.getUserId())
+                .map(user -> user.getName())
+                .orElse("Unknown");
+
+        return CostResponseDto.builder()
+                .id(updated.getStudycostid())
+                .userId(updated.getUserId())
+                .userName(userName)
+                .cost(updated.getStudycost())
+                .paymentStatus(updated.getPaymentStatus())
+                .createdat(updated.getCreatedat())
+                .build();
+    }
+
+    // ========================================
+    // 3. 지급 통계 메서드
+    // ========================================
+
+    public PaymentStatisticsDto getChargeCostPaymentStatistics() {
+        List<ChargeCost> allCosts = chargeCostRepository.findAll();
+
+        long paidCount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .count();
+
+        long unpaidCount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .count();
+
+        Long paidAmount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .mapToLong(ChargeCost::getChargecost)
+                .sum();
+
+        Long unpaidAmount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .mapToLong(ChargeCost::getChargecost)
+                .sum();
+
+        return PaymentStatisticsDto.builder()
+                .costType("charge")
+                .paidCount(paidCount)
+                .unpaidCount(unpaidCount)
+                .paidAmount(paidAmount)
+                .unpaidAmount(unpaidAmount)
+                .totalAmount(paidAmount + unpaidAmount)
+                .build();
+    }
+
+    public PaymentStatisticsDto getInviteCostPaymentStatistics() {
+        List<InviteCost> allCosts = inviteCostRepository.findAll();
+
+        long paidCount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .count();
+
+        long unpaidCount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .count();
+
+        Long paidAmount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .mapToLong(InviteCost::getInvitecost)
+                .sum();
+
+        Long unpaidAmount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .mapToLong(InviteCost::getInvitecost)
+                .sum();
+
+        return PaymentStatisticsDto.builder()
+                .costType("invite")
+                .paidCount(paidCount)
+                .unpaidCount(unpaidCount)
+                .paidAmount(paidAmount)
+                .unpaidAmount(unpaidAmount)
+                .totalAmount(paidAmount + unpaidAmount)
+                .build();
+    }
+
+    public PaymentStatisticsDto getReferralCostPaymentStatistics() {
+        List<ReferralCost> allCosts = referralCostRepository.findAll();
+
+        long paidCount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .count();
+
+        long unpaidCount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .count();
+
+        Long paidAmount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .mapToLong(ReferralCost::getReferralcost)
+                .sum();
+
+        Long unpaidAmount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .mapToLong(ReferralCost::getReferralcost)
+                .sum();
+
+        return PaymentStatisticsDto.builder()
+                .costType("referral")
+                .paidCount(paidCount)
+                .unpaidCount(unpaidCount)
+                .paidAmount(paidAmount)
+                .unpaidAmount(unpaidAmount)
+                .totalAmount(paidAmount + unpaidAmount)
+                .build();
+    }
+
+    public PaymentStatisticsDto getReviewCostPaymentStatistics() {
+        List<ReviewCost> allCosts = reviewCostRepository.findAll();
+
+        long paidCount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .count();
+
+        long unpaidCount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .count();
+
+        Long paidAmount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .mapToLong(ReviewCost::getReviewcost)
+                .sum();
+
+        Long unpaidAmount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .mapToLong(ReviewCost::getReviewcost)
+                .sum();
+
+        return PaymentStatisticsDto.builder()
+                .costType("review")
+                .paidCount(paidCount)
+                .unpaidCount(unpaidCount)
+                .paidAmount(paidAmount)
+                .unpaidAmount(unpaidAmount)
+                .totalAmount(paidAmount + unpaidAmount)
+                .build();
+    }
+
+    public PaymentStatisticsDto getStudyCostPaymentStatistics() {
+        List<StudyCost> allCosts = studyCostRepository.findAll();
+
+        long paidCount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .count();
+
+        long unpaidCount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .count();
+
+        Long paidAmount = allCosts.stream()
+                .filter(c -> "지급".equals(c.getPaymentStatus()))
+                .mapToLong(StudyCost::getStudycost)
+                .sum();
+
+        Long unpaidAmount = allCosts.stream()
+                .filter(c -> "미지급".equals(c.getPaymentStatus()))
+                .mapToLong(StudyCost::getStudycost)
+                .sum();
+
+        return PaymentStatisticsDto.builder()
+                .costType("study")
+                .paidCount(paidCount)
+                .unpaidCount(unpaidCount)
+                .paidAmount(paidAmount)
+                .unpaidAmount(unpaidAmount)
+                .totalAmount(paidAmount + unpaidAmount)
+                .build();
+    }
+
+    // ========================================
+    // 4. 기존 메서드 - 각 테이블별 전체 비용 조회
+    // ========================================
+
     public CostListResponseDto getChargeCosts() {
         List<ChargeCost> costs = chargeCostRepository.findAll();
         List<CostResponseDto> dtos = costs.stream()
@@ -135,7 +574,10 @@ public class CostService {
                 .build();
     }
 
-    // 2. user_id별 전체 비용 조회
+    // ========================================
+    // 5. user_id별 전체 비용 조회
+    // ========================================
+
     public UserTotalCostDto getUserTotalCost(Integer userId) {
         Long chargeCost = chargeCostRepository.sumCostByUserId(userId);
         Long inviteCost = inviteCostRepository.sumCostByUserId(userId);
@@ -162,7 +604,10 @@ public class CostService {
                 .build();
     }
 
-    // 3. 각 테이블별 개별 비용 조회 (특정 ID)
+    // ========================================
+    // 6. 각 테이블별 개별 비용 조회 (특정 ID)
+    // ========================================
+
     public CostResponseDto getChargeCostById(Integer id) {
         ChargeCost cost = chargeCostRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ChargeCost not found with id: " + id));
@@ -223,7 +668,10 @@ public class CostService {
                 .build();
     }
 
-    // 4. 총 비용 조회
+    // ========================================
+    // 7. 총 비용 조회
+    // ========================================
+
     public List<TotalCostDto> getAllTotalCosts() {
         List<TotalCost> costs = totalCostRepository.findAllByOrderByYearDescMonthDesc();
         return costs.stream()
@@ -252,7 +700,10 @@ public class CostService {
                 .build();
     }
 
-    // 5. 월별 비용 타입별 상세 조회
+    // ========================================
+    // 8. 월별 비용 타입별 상세 조회
+    // ========================================
+
     public MonthlyCostDetailDto getMonthlyCostDetail(Integer year, Integer month) {
         Long chargeCost = chargeCostRepository.sumCostByYearAndMonth(year, month);
         Long inviteCost = inviteCostRepository.sumCostByYearAndMonth(year, month);
@@ -280,7 +731,10 @@ public class CostService {
                 .build();
     }
 
-    // 6. 비용 생성 메서드들
+    // ========================================
+    // 9. 비용 생성 메서드들
+    // ========================================
+
     @Transactional
     public CostResponseDto createChargeCost(CreateCostRequestDto request) {
         validateUserId(request.getUserId());
@@ -391,7 +845,10 @@ public class CostService {
                 .build();
     }
 
-    // 7. 비용 수정 메서드들
+    // ========================================
+    // 10. 비용 수정 메서드들
+    // ========================================
+
     @Transactional
     public CostResponseDto updateChargeCost(Integer id, UpdateCostRequestDto request) {
         ChargeCost cost = chargeCostRepository.findById(id)
@@ -527,7 +984,10 @@ public class CostService {
                 .build();
     }
 
-    // 8. 비용 삭제 메서드들
+    // ========================================
+    // 11. 비용 삭제 메서드들
+    // ========================================
+
     @Transactional
     public void deleteChargeCost(Integer id) {
         if (!chargeCostRepository.existsById(id)) {

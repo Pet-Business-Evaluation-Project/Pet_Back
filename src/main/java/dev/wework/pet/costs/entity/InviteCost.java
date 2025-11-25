@@ -28,6 +28,8 @@ public class InviteCost {
     @Column(name = "createdat")
     private LocalDateTime createdat;
 
+    @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
+    private String paymentStatus = "미지급";
     public InviteCost(Integer userId, Long invitecost) {
         this.userId = userId;
         this.invitecost = invitecost;
