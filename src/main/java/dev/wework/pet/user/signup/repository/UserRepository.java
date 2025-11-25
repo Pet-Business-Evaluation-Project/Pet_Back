@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
   
     List<User> findByReferralID(String referralID);
 
+    boolean existsByUserId(Integer userId);
+
 }
