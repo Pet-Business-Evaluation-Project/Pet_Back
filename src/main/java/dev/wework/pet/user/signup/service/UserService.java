@@ -72,13 +72,23 @@ public class UserService {
     }
 
     /**
-     * 아이디 중복 검사 (User + ApprovalUser 모두 체크)
+     * ✅ 아이디 중복 검사 (거부된 사용자는 제외)
      */
     public boolean DuplicationLoginIDCheck(String loginID) {
+        // User 테이블에 이미 존재하는 경우
         if (userRepository.findByLoginIDIgnoreCase(loginID).isPresent()) {
             return true;
         }
-        return approvalUserRepository.existsByLoginIDIgnoreCase(loginID);
+
+        // ApprovalUser에서 승인대기 또는 승인 상태인 경우만 중복으로 처리
+        Optional<ApprovalUser> existingApproval = approvalUserRepository.findByLoginIDIgnoreCase(loginID);
+        if (existingApproval.isPresent()) {
+            ApprovalStatus status = existingApproval.get().getApprovalStatus();
+            // 거절 상태가 아닌 경우에만 중복으로 처리
+            return status != ApprovalStatus.거절;
+        }
+
+        return false;
     }
 
     /**
@@ -100,6 +110,7 @@ public class UserService {
      */
     @Transactional
     public ApprovalUser requestSignup(SignupUserRequest signupUserRequest) {
+
 
         if (DuplicationLoginIDCheck(signupUserRequest.loginID())) {
             throw new DuplicationLoginIDException();
@@ -400,6 +411,22 @@ public class UserService {
         approvalUserRepository.save(approvalUser);
 
         return approveSignup(approvalId, adminId);
+    }
+
+    /**
+     * ✅ 거부된 신청 삭제 (완전 삭제)
+     */
+    @Transactional
+    public void deleteRejectedApproval(int approvalId, int adminId) {
+        ApprovalUser approvalUser = approvalUserRepository.findById(approvalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
+
+        if (approvalUser.getApprovalStatus() != ApprovalStatus.거절) {
+            throw new IllegalStateException("거부 상태가 아닌 신청은 삭제할 수 없습니다.");
+        }
+
+        approvalUserRepository.delete(approvalUser);
+        System.out.println("✅ 거부된 신청 삭제 완료: " + approvalUser.getLoginID());
     }
 
     /**
