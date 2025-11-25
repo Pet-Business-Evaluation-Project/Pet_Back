@@ -202,7 +202,7 @@ public class AdminMypageService {
     }
 
     public long getPendingReviewCount() {
-        return signStartRepository.countByReviewcompleteNot(ReviewComplete.진행중);
+        return signStartRepository.countByReviewcomplete(ReviewComplete.진행중);
     }
 
 
