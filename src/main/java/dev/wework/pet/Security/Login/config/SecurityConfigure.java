@@ -72,7 +72,7 @@ public class SecurityConfigure {
                         ).permitAll()
                         .requestMatchers("/signstart/**").hasAnyRole("ADMIN", "REVIEWER","COMPANY")
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/api/admin/**","/admin/approval/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**","/admin/approval/**","/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
                         .requestMatchers("/api/company/**").hasRole("COMPANY")
                         .anyRequest().authenticated()
