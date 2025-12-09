@@ -19,4 +19,6 @@ public interface ReferralCostRepository extends JpaRepository<ReferralCost, Inte
 
     @Query("SELECT COALESCE(SUM(c.referralcost), 0) FROM ReferralCost c")
     Long sumAllReferralCosts();
+
+    boolean existsByUserIdAndReferralcost(Integer userId, Long referralcost);
 }
