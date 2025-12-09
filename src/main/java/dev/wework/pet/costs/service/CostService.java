@@ -3,6 +3,8 @@ package dev.wework.pet.costs.service;
 import dev.wework.pet.costs.dto.*;
 import dev.wework.pet.costs.entity.*;
 import dev.wework.pet.costs.repository.*;
+import dev.wework.pet.user.signup.entity.Reviewer;
+import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class CostService {
     private final StudyCostRepository studyCostRepository;
     private final TotalCostRepository totalCostRepository;
     private final UserRepository userRepository;
+    private final ReviewerRepository reviewerRepository; // 🔐 추가
 
     // ========================================
     // 유효성 검증 Helper 메서드
@@ -43,8 +46,23 @@ public class CostService {
         }
     }
 
+    // 🔐 계좌정보 조회 Helper 메서드
+    private String[] getAccountInfo(Integer userId) {
+        Reviewer reviewer = reviewerRepository.findByUserUserId(userId).orElse(null);
+
+        String bankName = (reviewer != null && reviewer.getBankName() != null)
+                ? reviewer.getBankName()
+                : "미등록";
+
+        String accountNumber = (reviewer != null && reviewer.getAccount() != null)
+                ? reviewer.getAccount()
+                : "미등록";
+
+        return new String[]{bankName, accountNumber};
+    }
+
     // ========================================
-    // 1. 지급 상태 포함 조회 메서드
+    // 1. 지급 상태 포함 조회 메서드 (🔐 계좌정보 포함)
     // ========================================
 
     public CostListResponseDto getChargeCostsWithPaymentStatus() {
@@ -55,6 +73,9 @@ public class CostService {
                             .map(user -> user.getName())
                             .orElse("Unknown");
 
+                    // 🔐 계좌정보 조회
+                    String[] accountInfo = getAccountInfo(c.getUserId());
+
                     return CostResponseDto.builder()
                             .id(c.getChargecostid())
                             .userId(c.getUserId())
@@ -62,6 +83,8 @@ public class CostService {
                             .cost(c.getChargecost())
                             .paymentStatus(c.getPaymentStatus())
                             .createdat(c.getCreatedat())
+                            .bankName(accountInfo[0])       // 🔐 은행명
+                            .accountNumber(accountInfo[1])   // 🔐 계좌번호
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -83,6 +106,9 @@ public class CostService {
                             .map(user -> user.getName())
                             .orElse("Unknown");
 
+                    // 🔐 계좌정보 조회
+                    String[] accountInfo = getAccountInfo(c.getUserId());
+
                     return CostResponseDto.builder()
                             .id(c.getInvitecostid())
                             .userId(c.getUserId())
@@ -90,6 +116,8 @@ public class CostService {
                             .cost(c.getInvitecost())
                             .paymentStatus(c.getPaymentStatus())
                             .createdat(c.getCreatedat())
+                            .bankName(accountInfo[0])       // 🔐 은행명
+                            .accountNumber(accountInfo[1])   // 🔐 계좌번호
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -111,6 +139,9 @@ public class CostService {
                             .map(user -> user.getName())
                             .orElse("Unknown");
 
+                    // 🔐 계좌정보 조회
+                    String[] accountInfo = getAccountInfo(c.getUserId());
+
                     return CostResponseDto.builder()
                             .id(c.getReferralcostid())
                             .userId(c.getUserId())
@@ -118,6 +149,8 @@ public class CostService {
                             .cost(c.getReferralcost())
                             .paymentStatus(c.getPaymentStatus())
                             .createdat(c.getCreatedat())
+                            .bankName(accountInfo[0])       // 🔐 은행명
+                            .accountNumber(accountInfo[1])   // 🔐 계좌번호
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -139,6 +172,9 @@ public class CostService {
                             .map(user -> user.getName())
                             .orElse("Unknown");
 
+                    // 🔐 계좌정보 조회
+                    String[] accountInfo = getAccountInfo(c.getUserId());
+
                     return CostResponseDto.builder()
                             .id(c.getReviewcostid())
                             .userId(c.getUserId())
@@ -146,6 +182,8 @@ public class CostService {
                             .cost(c.getReviewcost())
                             .paymentStatus(c.getPaymentStatus())
                             .createdat(c.getCreatedat())
+                            .bankName(accountInfo[0])       // 🔐 은행명
+                            .accountNumber(accountInfo[1])   // 🔐 계좌번호
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -167,6 +205,9 @@ public class CostService {
                             .map(user -> user.getName())
                             .orElse("Unknown");
 
+                    // 🔐 계좌정보 조회
+                    String[] accountInfo = getAccountInfo(c.getUserId());
+
                     return CostResponseDto.builder()
                             .id(c.getStudycostid())
                             .userId(c.getUserId())
@@ -174,6 +215,8 @@ public class CostService {
                             .cost(c.getStudycost())
                             .paymentStatus(c.getPaymentStatus())
                             .createdat(c.getCreatedat())
+                            .bankName(accountInfo[0])       // 🔐 은행명
+                            .accountNumber(accountInfo[1])   // 🔐 계좌번호
                             .build();
                 })
                 .collect(Collectors.toList());
