@@ -21,4 +21,13 @@ public interface ReferralCostRepository extends JpaRepository<ReferralCost, Inte
     Long sumAllReferralCosts();
 
     boolean existsByUserIdAndReferralcost(Integer userId, Long referralcost);
+
+    @Query("SELECT r.userId as userId, u.name as userName, u.loginID as loginId, " +
+           "SUM(r.referralcost) as totalReferralCost, COUNT(r) as referralCount, " +
+           "MAX(r.createdat) as lastCreatedAt " +
+           "FROM ReferralCost r " +
+           "JOIN User u ON r.userId = u.userId " +
+           "GROUP BY r.userId, u.name, u.loginID " +
+           "ORDER BY SUM(r.referralcost) DESC")
+    List<Object[]> findReferralCostSummaryGroupByUser();
 }

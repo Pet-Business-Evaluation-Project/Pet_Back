@@ -21,4 +21,7 @@ public class CostResponseDto {
 
     private String bankName;
     private String accountNumber;
+
+    private Integer referredUserId;
+    private String referredUserName;
 }
