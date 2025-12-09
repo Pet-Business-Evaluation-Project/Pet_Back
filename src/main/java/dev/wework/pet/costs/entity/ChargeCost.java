@@ -24,6 +24,9 @@ public class ChargeCost {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "sign_id")
+    private Integer signId;
+
     @Column(name = "chargecost")
     private Long chargecost;
 
@@ -32,8 +35,16 @@ public class ChargeCost {
 
     @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
     private String paymentStatus = "미지급";
+
     public ChargeCost(Integer userId, Long chargecost) {
         this.userId = userId;
+        this.chargecost = chargecost;
+        this.createdat = LocalDateTime.now();
+    }
+
+    public ChargeCost(Integer userId, Integer signId, Long chargecost) {
+        this.userId = userId;
+        this.signId = signId;
         this.chargecost = chargecost;
         this.createdat = LocalDateTime.now();
     }

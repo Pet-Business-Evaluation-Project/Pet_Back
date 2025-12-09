@@ -32,6 +32,7 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
     """)
     Optional<String> findReviewerNameByReviewerId(@Param("reviewerId") int reviewerId);
 
-
+    @Query("SELECT r FROM Reviewer r LEFT JOIN FETCH r.grades LEFT JOIN FETCH r.user WHERE r.reviewerId = :reviewerId")
+    Optional<Reviewer> findByIdWithGrades(@Param("reviewerId") Integer reviewerId);
 
 }
