@@ -12,6 +12,8 @@ import java.util.List;
 public interface ChargeCostRepository extends JpaRepository<ChargeCost, Integer> {
     List<ChargeCost> findByUserId(Integer userId);
 
+    java.util.Optional<ChargeCost> findBySignId(Integer signId);
+
     @Query("SELECT SUM(c.chargecost) FROM ChargeCost c WHERE c.userId = :userId")
     Long sumCostByUserId(@Param("userId") Integer userId);
 

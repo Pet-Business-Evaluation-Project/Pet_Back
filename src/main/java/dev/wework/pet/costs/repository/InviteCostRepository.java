@@ -11,6 +11,8 @@ import java.util.List;
 public interface InviteCostRepository extends JpaRepository<InviteCost, Integer> {
     List<InviteCost> findByUserId(Integer userId);
 
+    java.util.Optional<InviteCost> findBySignId(Integer signId);
+
     @Query("SELECT SUM(c.invitecost) FROM InviteCost c WHERE c.userId = :userId")
     Long sumCostByUserId(@Param("userId") Integer userId);
 

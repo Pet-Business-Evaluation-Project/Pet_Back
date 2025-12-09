@@ -22,6 +22,9 @@ public class ReviewCost {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "signstart_id")
+    private Integer signstartId;
+
     @Column(name = "reviewcost")
     private Long reviewcost;
 
@@ -30,8 +33,16 @@ public class ReviewCost {
 
     @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
     private String paymentStatus = "미지급";
+
     public ReviewCost(Integer userId, Long reviewcost) {
         this.userId = userId;
+        this.reviewcost = reviewcost;
+        this.createdat = LocalDateTime.now();
+    }
+
+    public ReviewCost(Integer userId, Integer signstartId, Long reviewcost) {
+        this.userId = userId;
+        this.signstartId = signstartId;
         this.reviewcost = reviewcost;
         this.createdat = LocalDateTime.now();
     }
