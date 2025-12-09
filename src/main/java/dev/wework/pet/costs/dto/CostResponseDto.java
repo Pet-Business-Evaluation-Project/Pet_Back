@@ -18,4 +18,7 @@ public class CostResponseDto {
     private Long cost;
     private String paymentStatus;
     private LocalDateTime createdat;
+
+    private String bankName;
+    private String accountNumber;
 }
