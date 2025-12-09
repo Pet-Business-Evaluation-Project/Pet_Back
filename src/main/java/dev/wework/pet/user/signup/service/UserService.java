@@ -520,8 +520,9 @@ public class UserService {
 
             // 추천비 지급 내역 생성 (무조건 10만원)
             ReferralCost referralCost = new ReferralCost(
-                    referrer.get().getUserId(),
-                    100000L
+                    referrer.get().getUserId(),  // 추천인 ID
+                    100000L,                     // 추천비 금액
+                    newUserId                    // 추천받은 사용자 ID
             );
 
             referralCostRepository.save(referralCost);
@@ -570,8 +571,9 @@ public class UserService {
 
                 // 추천비 지급 내역 생성
                 ReferralCost referralCost = new ReferralCost(
-                        referrer.get().getUserId(),
-                        100000L
+                        referrer.get().getUserId(),  // 추천인 ID
+                        100000L,                     // 추천비 금액
+                        user.getUserId()             // 추천받은 사용자 ID
                 );
 
                 referralCostRepository.save(referralCost);

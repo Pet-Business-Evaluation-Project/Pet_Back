@@ -142,6 +142,16 @@ public class CostService {
                     // 🔐 계좌정보 조회
                     String[] accountInfo = getAccountInfo(c.getUserId());
 
+                    // 기존의 복잡한 조회 로직을 제거하고 단순화
+                    Integer referredUserId = c.getReferredUserId();
+                    String referredUserName = null;
+
+                    if (referredUserId != null) {
+                        referredUserName = userRepository.findById(referredUserId)
+                                .map(user -> user.getName())
+                                .orElse("Unknown");
+                    }
+
                     return CostResponseDto.builder()
                             .id(c.getReferralcostid())
                             .userId(c.getUserId())
@@ -151,6 +161,8 @@ public class CostService {
                             .createdat(c.getCreatedat())
                             .bankName(accountInfo[0])       // 🔐 은행명
                             .accountNumber(accountInfo[1])   // 🔐 계좌번호
+                            .referredUserId(referredUserId)        // 추천받은 사용자 ID
+                            .referredUserName(referredUserName)    // 추천받은 사용자 이름
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -575,6 +587,26 @@ public class CostService {
                 .costs(dtos)
                 .totalAmount(total)
                 .build();
+    }
+
+    /**
+     * 사용자별 추천비 합계 조회 (그룹화)
+     */
+    public ReferralCostSummaryListDto getReferralCostsSummary() {
+        List<Object[]> results = referralCostRepository.findReferralCostSummaryGroupByUser();
+        
+        List<ReferralCostSummaryDto> summaries = results.stream()
+                .map(result -> new ReferralCostSummaryDto(
+                        (Integer) result[0], // userId
+                        (String) result[1],  // userName
+                        (String) result[2],  // loginId
+                        (Long) result[3],    // totalReferralCost
+                        ((Long) result[4]).intValue(), // referralCount
+                        (java.time.LocalDateTime) result[5] // lastCreatedAt
+                ))
+                .collect(Collectors.toList());
+        
+        return ReferralCostSummaryListDto.of(summaries);
     }
 
     public CostListResponseDto getReviewCosts() {

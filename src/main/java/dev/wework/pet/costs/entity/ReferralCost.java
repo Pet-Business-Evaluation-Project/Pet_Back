@@ -31,9 +31,19 @@ public class ReferralCost {
     @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
     private String paymentStatus = "미지급";
 
+    @Column(name = "referred_user_id")
+    private Integer referredUserId;
+
     public ReferralCost(Integer userId, Long referralcost) {
         this.userId = userId;
         this.referralcost = referralcost;
+        this.createdat = LocalDateTime.now();
+    }
+
+    public ReferralCost(Integer userId, Long referralcost, Integer referredUserId) {
+        this.userId = userId;
+        this.referralcost = referralcost;
+        this.referredUserId = referredUserId;
         this.createdat = LocalDateTime.now();
     }
 }

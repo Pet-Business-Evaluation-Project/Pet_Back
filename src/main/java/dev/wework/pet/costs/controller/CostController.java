@@ -34,6 +34,11 @@ public class CostController {
         return ResponseEntity.ok(costService.getReferralCostsWithPaymentStatus());
     }
 
+    @GetMapping("/referral/summary")
+    public ResponseEntity<ReferralCostSummaryListDto> getReferralCostsSummary() {
+        return ResponseEntity.ok(costService.getReferralCostsSummary());
+    }
+
     @GetMapping("/review/with-status")
     public ResponseEntity<CostListResponseDto> getReviewCostsWithPaymentStatus() {
         return ResponseEntity.ok(costService.getReviewCostsWithPaymentStatus());
