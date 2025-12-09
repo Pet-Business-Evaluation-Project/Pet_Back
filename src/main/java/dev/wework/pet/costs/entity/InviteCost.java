@@ -22,6 +22,9 @@ public class InviteCost {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "sign_id")
+    private Integer signId;
+
     @Column(name = "invitecost")
     private Long invitecost;
 
@@ -30,8 +33,16 @@ public class InviteCost {
 
     @Column(name = "payment_status", columnDefinition = "VARCHAR(10) DEFAULT '미지급'")
     private String paymentStatus = "미지급";
+
     public InviteCost(Integer userId, Long invitecost) {
         this.userId = userId;
+        this.invitecost = invitecost;
+        this.createdat = LocalDateTime.now();
+    }
+
+    public InviteCost(Integer userId, Integer signId, Long invitecost) {
+        this.userId = userId;
+        this.signId = signId;
         this.invitecost = invitecost;
         this.createdat = LocalDateTime.now();
     }

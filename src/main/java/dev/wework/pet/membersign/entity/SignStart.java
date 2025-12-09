@@ -26,6 +26,9 @@ public class SignStart {
     @Column(name = "reviewer_id", nullable = false)
     private int reviewerId;
 
+    @Column(name = "sales_reviewer_id", nullable = false)
+    private int salesReviewerId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private SignType signtype;

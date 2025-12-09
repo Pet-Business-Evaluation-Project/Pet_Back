@@ -15,6 +15,7 @@ public class SignStartResponseDto {
     private int signstartId;
     private int signId;
     private int reviewerId;
+    private int salesReviewerId;
     private String signtype;
     private String membergrade;
     private String signstate;
@@ -25,6 +26,7 @@ public class SignStartResponseDto {
     private int signcount;
     private String name;
     private String reviewerName;
+    private String salesReviewerName;
 
 }
 

@@ -12,6 +12,8 @@ import java.util.List;
 public interface ReviewCostRepository extends JpaRepository<ReviewCost, Integer> {
     List<ReviewCost> findByUserId(Integer userId);
 
+    java.util.Optional<ReviewCost> findBySignstartId(Integer signstartId);
+
     @Query("SELECT SUM(c.reviewcost) FROM ReviewCost c WHERE c.userId = :userId")
     Long sumCostByUserId(@Param("userId") Integer userId);
 
