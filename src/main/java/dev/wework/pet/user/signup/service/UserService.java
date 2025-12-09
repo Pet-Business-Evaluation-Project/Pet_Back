@@ -12,6 +12,8 @@ import dev.wework.pet.user.signup.dto.Response.ReviewerIdResponse;
 import dev.wework.pet.user.signup.entity.*;
 import dev.wework.pet.user.signup.exception.*;
 import dev.wework.pet.user.signup.repository.*;
+import dev.wework.pet.costs.entity.ReferralCost;
+import dev.wework.pet.costs.repository.ReferralCostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class UserService {
     private final MemberRepository memberRepository;
     private final GradeRepository gradeRepository;
     private final ApprovalUserRepository approvalUserRepository;
+    private final ReferralCostRepository referralCostRepository;
 
     // 전문분야 목록 (상수로 관리)
     private static final Map<String, List<String>> EXPERTISE_CATEGORIES = new HashMap<>();
@@ -51,13 +54,15 @@ public class UserService {
             ReviewerRepository reviewerRepository,
             MemberRepository memberRepository,
             GradeRepository gradeRepository,
-            ApprovalUserRepository approvalUserRepository
+            ApprovalUserRepository approvalUserRepository,
+            ReferralCostRepository referralCostRepository
     ) {
         this.userRepository = userRepository;
         this.reviewerRepository = reviewerRepository;
         this.memberRepository = memberRepository;
         this.gradeRepository = gradeRepository;
         this.approvalUserRepository = approvalUserRepository;
+        this.referralCostRepository = referralCostRepository;
     }
 
     /**
@@ -278,6 +283,9 @@ public class UserService {
 
                 approvalUser.approve(adminId);
 
+                // 추천인이 있는 경우 추천비 자동 지급
+                createReferralCostIfExists(approvalUser.getReferralID(), savedUser.getUserId());
+
                 return savedUser;
             }
             default -> throw new NotMatchClassficationException();
@@ -285,6 +293,9 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         approvalUser.approve(adminId);
+
+        // 추천인이 있는 경우 추천비 자동 지급
+        createReferralCostIfExists(approvalUser.getReferralID(), savedUser.getUserId());
 
         return savedUser;
     }
@@ -489,5 +500,100 @@ public class UserService {
     public Optional<Integer> getReviewerId(int userId) {
         return reviewerRepository.findByUserUserId(userId)
                 .map(Reviewer::getReviewerId);
+    }
+
+    /**
+     * 추천인이 있는 경우 추천비 자동 지급
+     */
+    private void createReferralCostIfExists(String referralID, Integer newUserId) {
+        if (referralID == null || referralID.trim().isEmpty()) {
+            return; // 추천인이 없으면 종료
+        }
+
+        try {
+            // 추천인 정보 조회
+            Optional<User> referrer = userRepository.findByLoginIDIgnoreCase(referralID);
+            if (referrer.isEmpty()) {
+                System.out.println("추천인을 찾을 수 없습니다: " + referralID);
+                return;
+            }
+
+            // 추천비 지급 내역 생성 (무조건 10만원)
+            ReferralCost referralCost = new ReferralCost(
+                    referrer.get().getUserId(),
+                    100000L
+            );
+
+            referralCostRepository.save(referralCost);
+            System.out.println("추천비 자동 지급 완료 - 추천인: " + referralID + ", 금액: 100,000원");
+
+        } catch (Exception e) {
+            System.err.println("추천비 자동 지급 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 기존 회원들의 추천비 데이터 일괄 생성
+     */
+    @Transactional
+    public void generateReferralCostsForExistingUsers() {
+        System.out.println("기존 회원들의 추천비 데이터 생성을 시작합니다...");
+        
+        // 추천인이 있는 모든 사용자 조회
+        List<User> usersWithReferral = userRepository.findAll().stream()
+                .filter(user -> user.getReferralID() != null && !user.getReferralID().trim().isEmpty())
+                .toList();
+
+        int processedCount = 0;
+        int successCount = 0;
+
+        for (User user : usersWithReferral) {
+            processedCount++;
+            
+            try {
+                // 이미 추천비가 지급된 사용자인지 확인 (중복 방지)
+                boolean alreadyExists = referralCostRepository.existsByUserIdAndReferralcost(
+                        getReferrerUserId(user.getReferralID()), 100000L
+                );
+                
+                if (alreadyExists) {
+                    System.out.println("이미 추천비가 지급된 사용자입니다: " + user.getLoginID());
+                    continue;
+                }
+
+                // 추천인 정보 조회
+                Optional<User> referrer = userRepository.findByLoginIDIgnoreCase(user.getReferralID());
+                if (referrer.isEmpty()) {
+                    System.out.println("추천인을 찾을 수 없습니다 - 사용자: " + user.getLoginID() + ", 추천인: " + user.getReferralID());
+                    continue;
+                }
+
+                // 추천비 지급 내역 생성
+                ReferralCost referralCost = new ReferralCost(
+                        referrer.get().getUserId(),
+                        100000L
+                );
+
+                referralCostRepository.save(referralCost);
+                successCount++;
+                
+                System.out.println("추천비 생성 완료 - 신규가입자: " + user.getLoginID() + ", 추천인: " + user.getReferralID());
+
+            } catch (Exception e) {
+                System.err.println("추천비 생성 중 오류 - 사용자: " + user.getLoginID() + ", 오류: " + e.getMessage());
+            }
+        }
+
+        System.out.println("기존 회원들의 추천비 데이터 생성 완료!");
+        System.out.println("처리된 사용자 수: " + processedCount + "명, 성공: " + successCount + "명");
+    }
+
+    /**
+     * 추천인 로그인 ID로 사용자 ID 조회
+     */
+    private Integer getReferrerUserId(String referralID) {
+        return userRepository.findByLoginIDIgnoreCase(referralID)
+                .map(User::getUserId)
+                .orElse(null);
     }
 }

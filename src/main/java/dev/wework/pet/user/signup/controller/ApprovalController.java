@@ -233,4 +233,23 @@ public class ApprovalController {
             return ResponseEntity.badRequest().body("❌ " + e.getMessage());
         }
     }
+
+    /**
+     * 기존 회원들의 추천비 데이터 일괄 생성
+     */
+    @PostMapping("/generate-referral-costs")
+    public ResponseEntity<Map<String, Object>> generateReferralCosts(@RequestParam int adminId) {
+        try {
+            userService.generateReferralCostsForExistingUsers();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "기존 회원들의 추천비 데이터 생성이 완료되었습니다."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "message", "추천비 데이터 생성 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
 }
