@@ -181,7 +181,7 @@ public class SignStartService {
             signStart.setEffectivedate(dto.getEffectivedate());
             signStart.setReviewcomplete(dto.getReviewcomplete() != null ? ReviewComplete.valueOf(dto.getReviewcomplete()) : ReviewComplete.진행중);
             signStart.setAffairdo(dto.getAffairdo() != null ? AffairDo.valueOf(dto.getAffairdo()) : AffairDo.미시행);
-            signStart.setSigncount(dto.getSigncount());
+            signStart.setSigncount(1);
 
             signStartRepository.save(signStart);
             responses.add(mapToDto(signStart));
@@ -189,7 +189,7 @@ public class SignStartService {
             // 심사원의 등급 조회 및 심사비 자동 생성
             if (!reviewer.getGrades().isEmpty()) {
                 Reviewergrade reviewerGrade = reviewer.getGrades().get(0).getReviewerGrade();
-                long reviewCost = calculateReviewCost(reviewerGrade, dto.getSigncount());
+                long reviewCost = calculateReviewCost(reviewerGrade, 1);
 
                 ReviewCost reviewCostEntity = new ReviewCost(
                     reviewer.getUser().getUserId(),
@@ -259,8 +259,9 @@ public class SignStartService {
                     .anyMatch(s -> s.getReviewerId() == reviewerId);
             if (exists) continue;
 
-            // 실제 reviewer 존재 여부 체크
-            if (!reviewerRepository.existsById(reviewerId)) continue;
+            // 실제 reviewer 존재 여부 체크 (grades와 함께 fetch)
+            dev.wework.pet.user.signup.entity.Reviewer reviewer = reviewerRepository.findByIdWithGrades(reviewerId).orElse(null);
+            if (reviewer == null) continue;
 
             SignStart signStart = new SignStart();
             signStart.setSignId(dto.getSignId());
@@ -276,11 +277,24 @@ public class SignStartService {
             signStart.setReviewcomplete(reference.getReviewcomplete());
             signStart.setAffairdo(reference.getAffairdo());
 
-            // signcount는 0으로 초기화
-            signStart.setSigncount(0);
+            // signcount는 1로 초기화
+            signStart.setSigncount(1);
 
             signStartRepository.save(signStart);
             responses.add(mapToDto(signStart));
+
+            // 심사원의 등급 조회 및 심사비 자동 생성
+            if (!reviewer.getGrades().isEmpty()) {
+                Reviewergrade reviewerGrade = reviewer.getGrades().get(0).getReviewerGrade();
+                long reviewCost = calculateReviewCost(reviewerGrade, 1);
+
+                ReviewCost reviewCostEntity = new ReviewCost(
+                    reviewer.getUser().getUserId(),
+                    signStart.getSignstartId(),
+                    reviewCost
+                );
+                reviewCostRepository.save(reviewCostEntity);
+            }
         }
 
         return responses;
@@ -369,29 +383,35 @@ public class SignStartService {
             }
         }
 
-        // signcount 변경 시 ReviewCost 업데이트
+        // signcount 변경 시 ReviewCost 업데이트 (관리자만 가능)
         boolean signcountChanged = false;
-        if (targetSignStart.getSigncount() != dto.getSigncount()) {
+        if (user.getClassification() == Classification.관리자 && targetSignStart.getSigncount() != dto.getSigncount()) {
             signcountChanged = true;
             targetSignStart.setSigncount(dto.getSigncount());
         }
 
         for (SignStart s : relatedSignStarts) {
             if (s.getSignstartId() == targetSignStart.getSignstartId()) continue;
-            if (dto.getSigntype() != null) s.setSigntype(SignType.valueOf(dto.getSigntype()));
+            // 심사원은 signtype과 affairdo를 수정할 수 없음
+            if (user.getClassification() == Classification.관리자) {
+                if (dto.getSigntype() != null) s.setSigntype(SignType.valueOf(dto.getSigntype()));
+                if (dto.getAffairdo() != null) s.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
+            }
             if (dto.getSignstate() != null) s.setSignstate(SignState.valueOf(dto.getSignstate()));
             if (dto.getSigndate() != null) s.setSigndate(dto.getSigndate());
             if (dto.getEffectivedate() != null) s.setEffectivedate(dto.getEffectivedate());
             if (dto.getReviewcomplete() != null) s.setReviewcomplete(ReviewComplete.valueOf(dto.getReviewcomplete()));
-            if (dto.getAffairdo() != null) s.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
         }
 
-        if (dto.getSigntype() != null) targetSignStart.setSigntype(SignType.valueOf(dto.getSigntype()));
+        // 심사원은 signtype과 affairdo를 수정할 수 없음
+        if (user.getClassification() == Classification.관리자) {
+            if (dto.getSigntype() != null) targetSignStart.setSigntype(SignType.valueOf(dto.getSigntype()));
+            if (dto.getAffairdo() != null) targetSignStart.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
+        }
         if (dto.getSignstate() != null) targetSignStart.setSignstate(SignState.valueOf(dto.getSignstate()));
         if (dto.getSigndate() != null) targetSignStart.setSigndate(dto.getSigndate());
         if (dto.getEffectivedate() != null) targetSignStart.setEffectivedate(dto.getEffectivedate());
         if (dto.getReviewcomplete() != null) targetSignStart.setReviewcomplete(ReviewComplete.valueOf(dto.getReviewcomplete()));
-        if (dto.getAffairdo() != null) targetSignStart.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
 
         signStartRepository.save(targetSignStart);
         for (SignStart s : relatedSignStarts) signStartRepository.save(s);
