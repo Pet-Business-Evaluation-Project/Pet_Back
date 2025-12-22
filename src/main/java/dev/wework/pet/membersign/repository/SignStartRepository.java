@@ -1,6 +1,7 @@
 package dev.wework.pet.membersign.repository;
 
 import dev.wework.pet.membersign.dto.SignStartResponseDto;
+import dev.wework.pet.membersign.entity.MemberGrade;
 import dev.wework.pet.membersign.entity.ReviewComplete;
 import dev.wework.pet.membersign.entity.SignStart;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,9 @@ public interface SignStartRepository extends JpaRepository<SignStart, Integer> {
     // 회원(memberId) 기준으로 모든 SignStart 조회 (Sign과 Join)
     @Query("SELECT ss FROM SignStart ss JOIN Sign s ON ss.signId = s.signId WHERE s.memberId = :memberId")
     List<SignStart> findByMemberId(@Param("memberId") int memberId);
+
+    // MemberGrade 기준으로 모든 SignStart 조회
+    List<SignStart> findByMembergrade(MemberGrade membergrade);
 
     long countByReviewcomplete(ReviewComplete reviewcomplete);
     long countByReviewcompleteNot(ReviewComplete reviewcomplete);

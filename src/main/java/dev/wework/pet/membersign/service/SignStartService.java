@@ -41,6 +41,7 @@ public class SignStartService {
     private final ReviewCostRepository reviewCostRepository;
     private final InviteCostRepository inviteCostRepository;
     private final ChargeCostRepository chargeCostRepository;
+    private final dev.wework.pet.costs.service.CostConfigService costConfigService;
 
     private SignStartResponseDto mapToDto(SignStart signStart) {
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
@@ -73,60 +74,26 @@ public class SignStartService {
 
     /**
      * 기업 규모(MemberGrade)에 따른 영업비를 계산합니다.
-     * 영업비 = 인증 비용 × 0.2
+     * CostConfig 설정을 사용합니다.
      */
     private long calculateInviteCost(MemberGrade memberGrade) {
-        long certificationCost = switch (memberGrade) {
-            case level1 -> 2_000_000L;  // 200만원
-            case level2 -> 2_500_000L;  // 250만원
-            case level3 -> 3_500_000L;  // 350만원
-            case level4 -> 10_000_000L; // 1000만원
-            case level5 -> 20_000_000L; // 2000만원
-        };
-        return (long) (certificationCost * 0.2);
-    }
-
-    /**
-     * 심사원 등급(Reviewergrade)에 따른 기본 심사비를 계산합니다.
-     * 심사원보: 30만원
-     * 심사위원: 40만원
-     * 수석심사위원: 50만원
-     */
-    private long calculateBaseReviewCost(Reviewergrade reviewergrade) {
-        return switch (reviewergrade) {
-            case 심사원보 -> 300_000L;      // 30만원
-            case 심사위원 -> 400_000L;      // 40만원
-            case 수석심사위원 -> 500_000L;  // 50만원
-        };
+        return costConfigService.calculateInviteCost(memberGrade);
     }
 
     /**
      * signcount를 반영한 심사비를 계산합니다.
-     * 심사비 = 기본 심사비 × signcount
+     * CostConfig 설정을 사용합니다.
      */
     private long calculateReviewCost(Reviewergrade reviewergrade, int signcount) {
-        long baseCost = calculateBaseReviewCost(reviewergrade);
-        return baseCost * signcount;
-    }
-
-    /**
-     * ReferralGrade에 따른 수수료 비율을 반환합니다.
-     * 리더: 10%, 일반: 5%
-     */
-    private double getChargeCostRate(ReferralGrade referralGrade) {
-        return switch (referralGrade) {
-            case 리더 -> 0.10;  // 10%
-            case 일반 -> 0.05;  // 5%
-        };
+        return costConfigService.calculateReviewCost(reviewergrade, signcount);
     }
 
     /**
      * 영업비에서 수수료를 계산합니다.
-     * 수수료 = 영업비 × 수수료 비율
+     * CostConfig 설정을 사용합니다.
      */
     private long calculateChargeCost(long inviteCost, ReferralGrade referralGrade) {
-        double rate = getChargeCostRate(referralGrade);
-        return (long) (inviteCost * rate);
+        return costConfigService.calculateChargeCost(inviteCost, referralGrade);
     }
 
 

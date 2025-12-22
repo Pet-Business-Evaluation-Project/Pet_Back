@@ -1,5 +1,7 @@
 package dev.wework.pet.user.signup.repository;
 
+import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
+import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,5 +36,11 @@ public interface ReviewerRepository extends JpaRepository<Reviewer, Integer> {
 
     @Query("SELECT r FROM Reviewer r LEFT JOIN FETCH r.grades LEFT JOIN FETCH r.user WHERE r.reviewerId = :reviewerId")
     Optional<Reviewer> findByIdWithGrades(@Param("reviewerId") Integer reviewerId);
+
+    @Query("SELECT DISTINCT r FROM Reviewer r LEFT JOIN FETCH r.grades g LEFT JOIN FETCH r.user WHERE g.reviewerGrade = :reviewergrade")
+    List<Reviewer> findByReviewergrade(@Param("reviewergrade") Reviewergrade reviewergrade);
+
+    @Query("SELECT DISTINCT r FROM Reviewer r LEFT JOIN FETCH r.grades g LEFT JOIN FETCH r.user WHERE g.referralgrade = :referralGrade")
+    List<Reviewer> findByReferralGrade(@Param("referralGrade") ReferralGrade referralGrade);
 
 }
