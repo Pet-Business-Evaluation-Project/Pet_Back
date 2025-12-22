@@ -7,7 +7,9 @@ import dev.wework.pet.user.signup.dto.Enum.Classification;
 import dev.wework.pet.user.signup.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,13 +25,8 @@ public class CostConfigController {
      * 모든 비용 설정 조회
      */
     @GetMapping
-    public ResponseEntity<List<CostConfigResponseDto>> getAllConfigs(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다.");
-        }
-        if (user.getClassification() != Classification.관리자) {
-            throw new IllegalArgumentException("관리자만 비용 설정을 조회할 수 있습니다.");
-        }
+    public ResponseEntity<List<CostConfigResponseDto>> getAllConfigs() {
+
         return ResponseEntity.ok(costConfigService.getAllConfigs());
     }
 
@@ -39,14 +36,9 @@ public class CostConfigController {
      */
     @GetMapping("/{configType}")
     public ResponseEntity<List<CostConfigResponseDto>> getConfigsByType(
-            @PathVariable String configType,
-            @AuthenticationPrincipal User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다.");
-        }
-        if (user.getClassification() != Classification.관리자) {
-            throw new IllegalArgumentException("관리자만 비용 설정을 조회할 수 있습니다.");
-        }
+            @PathVariable String configType
+          ) {
+
         return ResponseEntity.ok(costConfigService.getConfigsByType(configType));
     }
 
@@ -56,15 +48,9 @@ public class CostConfigController {
      */
     @PutMapping
     public ResponseEntity<CostConfigResponseDto> updateConfig(
-            @RequestBody UpdateCostConfigRequestDto dto,
-            @AuthenticationPrincipal User user) {
+            @RequestBody UpdateCostConfigRequestDto dto
+          ) {
 
-        if (user == null) {
-            throw new IllegalArgumentException("로그인이 필요합니다.");
-        }
-        if (user.getClassification() != Classification.관리자) {
-            throw new IllegalArgumentException("관리자만 비용 설정을 수정할 수 있습니다.");
-        }
 
         return ResponseEntity.ok(costConfigService.updateConfig(dto));
     }
