@@ -138,7 +138,7 @@ public class SignStartService {
 
             signStartServiceExtension.createRevenueForSignStart(
                     sign.getSignId(),              // Sign ID
-                    user.getName(),              // 기업명
+                    member.getUser().getName(),    // 기업명
                     dto.getMemberId(),             // Member ID
                     dto.getMembergrade(),          // "level1", "level2", etc.
                     dto.getSigntype()              // 인증 유형
