@@ -5,6 +5,7 @@ import dev.wework.pet.membersign.dto.SignStartResponseDto;
 import dev.wework.pet.membersign.entity.*;
 import dev.wework.pet.membersign.repository.SignRepository;
 import dev.wework.pet.membersign.repository.SignStartRepository;
+import dev.wework.pet.revenue.repository.RevenueRepository;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.MemberRepository;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
@@ -45,6 +46,7 @@ public class SignStartService {
 
     private final SignStartServiceExtension signStartServiceExtension;
 
+    private final RevenueRepository revenueRepository;
     private SignStartResponseDto mapToDto(SignStart signStart) {
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
                 .orElse("알 수 없음");
@@ -602,6 +604,7 @@ public class SignStartService {
         // 3. Sign에 연결된 InviteCost와 ChargeCost 삭제
         inviteCostRepository.deleteBySignId(signId);
         chargeCostRepository.deleteBySignId(signId);
+        revenueRepository.deleteBySignId(signId);
 
         // 4. Sign 삭제
         signRepository.delete(sign);

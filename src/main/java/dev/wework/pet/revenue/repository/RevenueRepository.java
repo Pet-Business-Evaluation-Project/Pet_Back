@@ -24,6 +24,8 @@ public interface RevenueRepository extends JpaRepository<Revenue, Integer> {
     // Sign ID로 조회
     List<Revenue> findBySignId(Integer signId);
 
+    void deleteBySignId(Integer signId);
+
     // 월별 수익 조회
     @Query("SELECT r FROM Revenue r WHERE YEAR(r.createdAt) = :year AND MONTH(r.createdAt) = :month")
     List<Revenue> findByYearAndMonth(@Param("year") Integer year, @Param("month") Integer month);
