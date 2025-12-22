@@ -27,6 +27,7 @@ public class CostConfigService {
     private final InviteCostRepository inviteCostRepository;
     private final ReviewCostRepository reviewCostRepository;
     private final ChargeCostRepository chargeCostRepository;
+    private final ReferralCostRepository referralCostRepository;
     private final SignStartRepository signStartRepository;
     private final ReviewerRepository reviewerRepository;
 
@@ -97,6 +98,13 @@ public class CostConfigService {
     }
 
     /**
+     * 추천비 기본 금액 조회
+     */
+    public long getReferralCostDefault() {
+        return getConfigValue("REFERRAL_COST_DEFAULT", "default");
+    }
+
+    /**
      * 설정 수정 + 해당 등급의 모든 기존 Cost 재계산
      */
     @Transactional
@@ -117,6 +125,9 @@ public class CostConfigService {
                 break;
             case "REFERRAL_GRADE_CHARGE_RATE":
                 recalculateChargeCosts(dto.getGradeName(), dto.getValue());
+                break;
+            case "REFERRAL_COST_DEFAULT":
+                recalculateReferralCosts(dto.getValue());
                 break;
         }
 
@@ -221,5 +232,20 @@ public class CostConfigService {
                 });
             }
         }
+    }
+
+    /**
+     * 추천비 기본 금액 변경 시 모든 ReferralCost 재계산
+     */
+    private void recalculateReferralCosts(Long newReferralCost) {
+        List<ReferralCost> allReferralCosts = referralCostRepository.findAll();
+
+        for (ReferralCost referralCost : allReferralCosts) {
+            referralCost.setReferralcost(newReferralCost);
+        }
+
+        // 일괄 저장
+        referralCostRepository.saveAll(allReferralCosts);
+        System.out.println("✅ 모든 ReferralCost가 " + newReferralCost + "원으로 재계산되었습니다.");
     }
 }

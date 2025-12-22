@@ -29,6 +29,7 @@ public class UserService {
     private final GradeRepository gradeRepository;
     private final ApprovalUserRepository approvalUserRepository;
     private final ReferralCostRepository referralCostRepository;
+    private final dev.wework.pet.costs.service.CostConfigService costConfigService;
 
     // 전문분야 목록 (상수로 관리)
     private static final Map<String, List<String>> EXPERTISE_CATEGORIES = new HashMap<>();
@@ -55,7 +56,8 @@ public class UserService {
             MemberRepository memberRepository,
             GradeRepository gradeRepository,
             ApprovalUserRepository approvalUserRepository,
-            ReferralCostRepository referralCostRepository
+            ReferralCostRepository referralCostRepository,
+            dev.wework.pet.costs.service.CostConfigService costConfigService
     ) {
         this.userRepository = userRepository;
         this.reviewerRepository = reviewerRepository;
@@ -63,6 +65,7 @@ public class UserService {
         this.gradeRepository = gradeRepository;
         this.approvalUserRepository = approvalUserRepository;
         this.referralCostRepository = referralCostRepository;
+        this.costConfigService = costConfigService;
     }
 
     /**
@@ -518,15 +521,16 @@ public class UserService {
                 return;
             }
 
-            // 추천비 지급 내역 생성 (무조건 10만원)
+            // 추천비 지급 내역 생성 (CostConfig에서 조회)
+            long referralCostAmount = costConfigService.getReferralCostDefault();
             ReferralCost referralCost = new ReferralCost(
                     referrer.get().getUserId(),  // 추천인 ID
-                    100000L,                     // 추천비 금액
+                    referralCostAmount,          // 추천비 금액 (CostConfig에서 조회)
                     newUserId                    // 추천받은 사용자 ID
             );
 
             referralCostRepository.save(referralCost);
-            System.out.println("추천비 자동 지급 완료 - 추천인: " + referralID + ", 금액: 100,000원");
+            System.out.println("추천비 자동 지급 완료 - 추천인: " + referralID + ", 금액: " + referralCostAmount + "원");
 
         } catch (Exception e) {
             System.err.println("추천비 자동 지급 중 오류 발생: " + e.getMessage());
@@ -552,11 +556,13 @@ public class UserService {
             processedCount++;
             
             try {
+                long referralCostAmount = costConfigService.getReferralCostDefault();
+
                 // 이미 추천비가 지급된 사용자인지 확인 (중복 방지)
                 boolean alreadyExists = referralCostRepository.existsByUserIdAndReferralcost(
-                        getReferrerUserId(user.getReferralID()), 100000L
+                        getReferrerUserId(user.getReferralID()), referralCostAmount
                 );
-                
+
                 if (alreadyExists) {
                     System.out.println("이미 추천비가 지급된 사용자입니다: " + user.getLoginID());
                     continue;
@@ -569,16 +575,16 @@ public class UserService {
                     continue;
                 }
 
-                // 추천비 지급 내역 생성
+                // 추천비 지급 내역 생성 (CostConfig에서 조회)
                 ReferralCost referralCost = new ReferralCost(
                         referrer.get().getUserId(),  // 추천인 ID
-                        100000L,                     // 추천비 금액
+                        referralCostAmount,          // 추천비 금액 (CostConfig에서 조회)
                         user.getUserId()             // 추천받은 사용자 ID
                 );
 
                 referralCostRepository.save(referralCost);
                 successCount++;
-                
+
                 System.out.println("추천비 생성 완료 - 신규가입자: " + user.getLoginID() + ", 추천인: " + user.getReferralID());
 
             } catch (Exception e) {

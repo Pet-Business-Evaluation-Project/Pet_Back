@@ -97,6 +97,22 @@ curl -X PUT http://localhost:8080/cost-config \
 # 결과: 리더 등급 추천인의 모든 ChargeCost가 재계산됨
 ```
 
+### 시나리오 4: 추천비 기본 금액 수정 ⭐ NEW!
+```bash
+# 추천비를 10만원 → 15만원으로 변경
+curl -X PUT http://localhost:8080/cost-config \
+  -H "Content-Type: application/json" \
+  -H "Cookie: JSESSIONID=<관리자 세션 쿠키>" \
+  -d '{
+    "configType": "REFERRAL_COST_DEFAULT",
+    "gradeName": "default",
+    "value": 150000
+  }'
+
+# 결과: 모든 기존 ReferralCost가 15만원으로 재계산됨
+# UserService에서 새로 가입하는 회원의 추천비도 15만원으로 자동 지급됨
+```
+
 ## 🔐 인증 방법
 
 API는 **관리자 권한**이 필요합니다. 테스트하려면:
@@ -141,6 +157,11 @@ curl -X GET http://localhost:8080/cost-config \
 |-----------|---------------|
 | 리더      | 10%           |
 | 일반      | 5%            |
+
+### REFERRAL_COST_DEFAULT (추천비 기본 금액)
+| gradeName | value (추천비) |
+|-----------|---------------|
+| default   | 100,000원     |
 
 ## ⚠️ 주의사항
 

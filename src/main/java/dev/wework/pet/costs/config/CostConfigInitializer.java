@@ -48,7 +48,10 @@ public class CostConfigInitializer implements ApplicationRunner {
 
                 // REFERRAL_GRADE_CHARGE_RATE: 추천등급별 수수료 비율 (정수로 저장)
                 new CostConfig("REFERRAL_GRADE_CHARGE_RATE", "리더", 10L),
-                new CostConfig("REFERRAL_GRADE_CHARGE_RATE", "일반", 5L)
+                new CostConfig("REFERRAL_GRADE_CHARGE_RATE", "일반", 5L),
+
+                // REFERRAL_COST_DEFAULT: 추천비 기본 금액
+                new CostConfig("REFERRAL_COST_DEFAULT", "default", 100_000L)
             );
 
             costConfigRepository.saveAll(initialConfigs);
