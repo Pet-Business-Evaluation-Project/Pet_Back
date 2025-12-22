@@ -43,6 +43,8 @@ public class SignStartService {
     private final ChargeCostRepository chargeCostRepository;
     private final dev.wework.pet.costs.service.CostConfigService costConfigService;
 
+    private final SignStartServiceExtension signStartServiceExtension;
+
     private SignStartResponseDto mapToDto(SignStart signStart) {
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
                 .orElse("알 수 없음");
@@ -130,6 +132,22 @@ public class SignStartService {
         MemberGrade memberGrade = MemberGrade.valueOf(dto.getMembergrade());
         long inviteCost = calculateInviteCost(memberGrade);
 
+        try {
+            dev.wework.pet.user.signup.entity.Member member = memberRepository.findById(dto.getMemberId())
+                    .orElseThrow(() -> new IllegalArgumentException("Member not found: " + dto.getMemberId()));
+
+            signStartServiceExtension.createRevenueForSignStart(
+                    sign.getSignId(),              // Sign ID
+                    user.getName(),              // 기업명
+                    dto.getMemberId(),             // Member ID
+                    dto.getMembergrade(),          // "level1", "level2", etc.
+                    dto.getSigntype()              // 인증 유형
+            );
+        } catch (Exception e) {
+            // Revenue 생성 실패해도 인증 생성은 계속 진행
+            System.err.println("Revenue 생성 실패: " + e.getMessage());
+        }
+
         List<SignStartResponseDto> responses = new ArrayList<>();
         for (Integer reviewerId : dto.getReviewerIds()) {
             // 실제 reviewer 존재 여부 체크 (grades와 함께 fetch)
@@ -202,6 +220,7 @@ public class SignStartService {
                 });
             }
         }
+
 
         return responses;
     }
