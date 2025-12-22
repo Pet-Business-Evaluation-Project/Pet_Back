@@ -115,6 +115,6 @@ public class SignStartController {
             throw new IllegalArgumentException("관리자만 삭제 가능합니다.");
         }
 
-        signRepository.deleteById(signId);
+        signStartService.deleteSign(signId,user);
     }
 }

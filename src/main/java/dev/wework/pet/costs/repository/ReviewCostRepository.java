@@ -22,4 +22,6 @@ public interface ReviewCostRepository extends JpaRepository<ReviewCost, Integer>
 
     @Query("SELECT COALESCE(SUM(c.reviewcost), 0) FROM ReviewCost c")
     Long sumAllReviewCosts();
+
+    void deleteBySignstartId(Integer signstartId);
 }

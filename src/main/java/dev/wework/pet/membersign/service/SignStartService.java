@@ -177,9 +177,9 @@ public class SignStartService {
                 long reviewCost = calculateReviewCost(reviewerGrade, 1);
 
                 ReviewCost reviewCostEntity = new ReviewCost(
-                    reviewer.getUser().getUserId(),
-                    signStart.getSignstartId(),
-                    reviewCost
+                        reviewer.getUser().getUserId(),
+                        signStart.getSignstartId(),
+                        reviewCost
                 );
                 reviewCostRepository.save(reviewCostEntity);
             }
@@ -187,9 +187,9 @@ public class SignStartService {
 
         // 영업 심사원에게 영업비 자동 지급
         InviteCost inviteCostEntity = new InviteCost(
-            salesReviewer.getUser().getUserId(),
-            sign.getSignId(),
-            inviteCost
+                salesReviewer.getUser().getUserId(),
+                sign.getSignId(),
+                inviteCost
         );
         inviteCostRepository.save(inviteCostEntity);
 
@@ -210,9 +210,9 @@ public class SignStartService {
 
                             // ChargeCost 생성
                             ChargeCost chargeCostEntity = new ChargeCost(
-                                referralUser.getUserId(),
-                                sign.getSignId(),
-                                chargeCost
+                                    referralUser.getUserId(),
+                                    sign.getSignId(),
+                                    chargeCost
                             );
                             chargeCostRepository.save(chargeCostEntity);
                         }
@@ -220,7 +220,6 @@ public class SignStartService {
                 });
             }
         }
-
 
         return responses;
     }
@@ -275,9 +274,9 @@ public class SignStartService {
                 long reviewCost = calculateReviewCost(reviewerGrade, 1);
 
                 ReviewCost reviewCostEntity = new ReviewCost(
-                    reviewer.getUser().getUserId(),
-                    signStart.getSignstartId(),
-                    reviewCost
+                        reviewer.getUser().getUserId(),
+                        signStart.getSignstartId(),
+                        reviewCost
                 );
                 reviewCostRepository.save(reviewCostEntity);
             }
@@ -459,6 +458,10 @@ public class SignStartService {
         SignStart signStart = signStartRepository.findById(signstartId)
                 .orElseThrow(() -> new IllegalArgumentException("SignStart not found"));
         checkPermission(user, signStart);
+
+        // 관련된 ReviewCost 삭제
+        reviewCostRepository.deleteBySignstartId(signstartId);
+
         signStartRepository.delete(signStart);
     }
 
@@ -564,6 +567,12 @@ public class SignStartService {
         }
 
         List<SignStart> signStarts = signStartRepository.findBySignId(signId);
+
+        // 각 SignStart에 연결된 ReviewCost 삭제
+        for (SignStart signStart : signStarts) {
+            reviewCostRepository.deleteBySignstartId(signStart.getSignstartId());
+        }
+
         signStartRepository.deleteAll(signStarts);
     }
 
@@ -577,12 +586,24 @@ public class SignStartService {
         Sign sign = signRepository.findById(signId)
                 .orElseThrow(() -> new IllegalArgumentException("Sign not found"));
 
-        // 연관된 SignStart가 있는지 확인 (선택사항 - 안전장치)
+        // 연관된 SignStart 조회
         List<SignStart> relatedSignStarts = signStartRepository.findBySignId(signId);
-        if (!relatedSignStarts.isEmpty()) {
-            throw new IllegalArgumentException("연관된 SignStart가 존재합니다. 먼저 SignStart를 삭제하세요.");
+
+        // 1. 각 SignStart에 연결된 ReviewCost 삭제
+        for (SignStart signStart : relatedSignStarts) {
+            reviewCostRepository.deleteBySignstartId(signStart.getSignstartId());
         }
 
+        // 2. SignStart 삭제
+        if (!relatedSignStarts.isEmpty()) {
+            signStartRepository.deleteAll(relatedSignStarts);
+        }
+
+        // 3. Sign에 연결된 InviteCost와 ChargeCost 삭제
+        inviteCostRepository.deleteBySignId(signId);
+        chargeCostRepository.deleteBySignId(signId);
+
+        // 4. Sign 삭제
         signRepository.delete(sign);
     }
 

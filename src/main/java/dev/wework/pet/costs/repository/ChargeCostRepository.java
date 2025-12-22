@@ -23,4 +23,6 @@ public interface ChargeCostRepository extends JpaRepository<ChargeCost, Integer>
     // ✅ 전체 합계
     @Query("SELECT COALESCE(SUM(c.chargecost), 0) FROM ChargeCost c")
     Long sumAllChargeCosts();
+
+    void deleteBySignId(Integer signId);
 }

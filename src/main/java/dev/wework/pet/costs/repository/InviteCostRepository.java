@@ -21,4 +21,6 @@ public interface InviteCostRepository extends JpaRepository<InviteCost, Integer>
 
     @Query("SELECT COALESCE(SUM(c.invitecost), 0) FROM InviteCost c")
     Long sumAllInviteCosts();
+
+    void deleteBySignId(Integer signId);
 }
