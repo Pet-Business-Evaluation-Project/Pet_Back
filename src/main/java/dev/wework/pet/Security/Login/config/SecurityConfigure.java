@@ -72,6 +72,7 @@ public class SecurityConfigure {
                         ).permitAll()
                         .requestMatchers("/signstart/**").hasAnyRole("ADMIN", "REVIEWER","COMPANY")
                         .requestMatchers("/mypage/**").authenticated()
+                        .requestMatchers("/cost-config/**").hasRole("ADMIN")  // 비용 설정은 관리자만
                         .requestMatchers("/api/admin/**","/admin/approval/**","/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviewer/**").hasRole("REVIEWER")
                         .requestMatchers("/api/company/**").hasRole("COMPANY")
