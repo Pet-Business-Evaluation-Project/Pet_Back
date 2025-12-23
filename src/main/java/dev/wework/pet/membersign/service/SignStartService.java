@@ -5,6 +5,7 @@ import dev.wework.pet.membersign.dto.SignStartResponseDto;
 import dev.wework.pet.membersign.entity.*;
 import dev.wework.pet.membersign.repository.SignRepository;
 import dev.wework.pet.membersign.repository.SignStartRepository;
+import dev.wework.pet.revenue.entity.Revenue;
 import dev.wework.pet.revenue.repository.RevenueRepository;
 import dev.wework.pet.user.signup.entity.User;
 import dev.wework.pet.user.signup.repository.MemberRepository;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -421,6 +423,9 @@ public class SignStartService {
             MemberGrade updatedMemberGrade = targetSignStart.getMembergrade();
             long newInviteCost = calculateInviteCost(updatedMemberGrade);
 
+            // 기업 인증 비용 원본 값 조회
+            Long certificationCost = costConfigService.getConfigValue("MEMBER_GRADE_CERTIFICATION", updatedMemberGrade.name());
+
             // InviteCost 업데이트
             inviteCostRepository.findBySignId(targetSignStart.getSignId()).ifPresent(inviteCost -> {
                 inviteCost.setInvitecost(newInviteCost);
@@ -450,6 +455,15 @@ public class SignStartService {
                     }
                 });
             });
+
+            // Revenue 업데이트 - "기업인증" 카테고리
+            List<Revenue> revenues = revenueRepository.findBySignId(targetSignStart.getSignId());
+            for (Revenue revenue : revenues) {
+                if ("기업인증".equals(revenue.getCategory())) {
+                    revenue.setAmount(BigDecimal.valueOf(certificationCost));
+                    revenueRepository.save(revenue);
+                }
+            }
         }
 
         return mapToDto(targetSignStart);
@@ -525,6 +539,9 @@ public class SignStartService {
             final MemberGrade finalMemberGrade = updatedMemberGrade;
             long newInviteCost = calculateInviteCost(finalMemberGrade);
 
+            // 기업 인증 비용 원본 값 조회
+            Long certificationCost = costConfigService.getConfigValue("MEMBER_GRADE_CERTIFICATION", finalMemberGrade.name());
+
             // InviteCost 업데이트
             inviteCostRepository.findBySignId(signId).ifPresent(inviteCost -> {
                 inviteCost.setInvitecost(newInviteCost);
@@ -556,6 +573,15 @@ public class SignStartService {
                         }
                     });
                 });
+            }
+
+            // Revenue 업데이트 - "기업인증" 카테고리
+            List<Revenue> revenues = revenueRepository.findBySignId(signId);
+            for (Revenue revenue : revenues) {
+                if ("기업인증".equals(revenue.getCategory())) {
+                    revenue.setAmount(BigDecimal.valueOf(certificationCost));
+                    revenueRepository.save(revenue);
+                }
             }
         }
 
