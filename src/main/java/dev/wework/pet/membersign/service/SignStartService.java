@@ -372,6 +372,16 @@ public class SignStartService {
             }
         }
 
+        // signtype 변경 추적
+        boolean signtypeChanged = false;
+        SignType newSignType = null;
+        if (user.getClassification() == Classification.관리자 && dto.getSigntype() != null) {
+            newSignType = SignType.valueOf(dto.getSigntype());
+            if (targetSignStart.getSigntype() != newSignType) {
+                signtypeChanged = true;
+            }
+        }
+
         // signcount 변경 시 ReviewCost 업데이트 (관리자만 가능)
         boolean signcountChanged = false;
         if (user.getClassification() == Classification.관리자 && targetSignStart.getSigncount() != dto.getSigncount()) {
@@ -461,6 +471,21 @@ public class SignStartService {
             for (Revenue revenue : revenues) {
                 if ("기업인증".equals(revenue.getCategory())) {
                     revenue.setAmount(BigDecimal.valueOf(certificationCost));
+                    // certificationLevel 업데이트 (level1 -> 1, level2 -> 2, ...)
+                    String gradeName = updatedMemberGrade.name(); // "level1", "level2", ...
+                    int level = Integer.parseInt(gradeName.replace("level", ""));
+                    revenue.setCertificationLevel(level);
+                    revenueRepository.save(revenue);
+                }
+            }
+        }
+
+        // signtype 변경 시 Revenue의 certificationType 업데이트
+        if (signtypeChanged && newSignType != null) {
+            List<Revenue> revenues = revenueRepository.findBySignId(targetSignStart.getSignId());
+            for (Revenue revenue : revenues) {
+                if ("기업인증".equals(revenue.getCategory())) {
+                    revenue.setCertificationType(newSignType.name());
                     revenueRepository.save(revenue);
                 }
             }
@@ -492,11 +517,20 @@ public class SignStartService {
 
         boolean memberGradeChanged = false;
         MemberGrade updatedMemberGrade = null;
+        boolean signtypeChanged = false;
+        SignType updatedSignType = null;
 
         for (SignStart s : signStarts) {
             boolean signcountChanged = false;
 
-            if (dto.getSigntype() != null) s.setSigntype(SignType.valueOf(dto.getSigntype()));
+            if (dto.getSigntype() != null) {
+                SignType newSignType = SignType.valueOf(dto.getSigntype());
+                if (s.getSigntype() != newSignType) {
+                    signtypeChanged = true;
+                    updatedSignType = newSignType;
+                }
+                s.setSigntype(newSignType);
+            }
             if (dto.getSignstate() != null) s.setSignstate(SignState.valueOf(dto.getSignstate()));
             if (dto.getSigndate() != null) s.setSigndate(dto.getSigndate());
             if (dto.getEffectivedate() != null) s.setEffectivedate(dto.getEffectivedate());
@@ -580,6 +614,21 @@ public class SignStartService {
             for (Revenue revenue : revenues) {
                 if ("기업인증".equals(revenue.getCategory())) {
                     revenue.setAmount(BigDecimal.valueOf(certificationCost));
+                    // certificationLevel 업데이트 (level1 -> 1, level2 -> 2, ...)
+                    String gradeName = finalMemberGrade.name(); // "level1", "level2", ...
+                    int level = Integer.parseInt(gradeName.replace("level", ""));
+                    revenue.setCertificationLevel(level);
+                    revenueRepository.save(revenue);
+                }
+            }
+        }
+
+        // signtype 변경 시 Revenue의 certificationType 업데이트
+        if (signtypeChanged && updatedSignType != null) {
+            List<Revenue> revenues = revenueRepository.findBySignId(signId);
+            for (Revenue revenue : revenues) {
+                if ("기업인증".equals(revenue.getCategory())) {
+                    revenue.setCertificationType(updatedSignType.name());
                     revenueRepository.save(revenue);
                 }
             }
