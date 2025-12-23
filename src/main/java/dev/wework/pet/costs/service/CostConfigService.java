@@ -7,6 +7,8 @@ import dev.wework.pet.costs.repository.*;
 import dev.wework.pet.membersign.entity.MemberGrade;
 import dev.wework.pet.membersign.entity.SignStart;
 import dev.wework.pet.membersign.repository.SignStartRepository;
+import dev.wework.pet.revenue.entity.Revenue;
+import dev.wework.pet.revenue.repository.RevenueRepository;
 import dev.wework.pet.user.signup.dto.Enum.ReferralGrade;
 import dev.wework.pet.user.signup.dto.Enum.Reviewergrade;
 import dev.wework.pet.user.signup.entity.Reviewer;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ public class CostConfigService {
     private final ReferralCostRepository referralCostRepository;
     private final SignStartRepository signStartRepository;
     private final ReviewerRepository reviewerRepository;
+    private final RevenueRepository revenueRepository;
 
     private CostConfigResponseDto mapToDto(CostConfig config) {
         return new CostConfigResponseDto(
@@ -184,6 +188,15 @@ public class CostConfigService {
                     }
                 });
             });
+
+            // Revenue 업데이트 - "기업인증" 카테고리
+            List<Revenue> revenues = revenueRepository.findBySignId(signId);
+            for (Revenue revenue : revenues) {
+                if ("기업인증".equals(revenue.getCategory())) {
+                    revenue.setAmount(BigDecimal.valueOf(newCertificationCost));
+                    revenueRepository.save(revenue);
+                }
+            }
         }
     }
 
