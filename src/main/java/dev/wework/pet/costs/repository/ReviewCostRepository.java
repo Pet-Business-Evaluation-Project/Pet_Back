@@ -7,12 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReviewCostRepository extends JpaRepository<ReviewCost, Integer> {
     List<ReviewCost> findByUserId(Integer userId);
 
     java.util.Optional<ReviewCost> findBySignstartId(Integer signstartId);
+
+    Optional<ReviewCost> findByUserIdAndSignstartId(Integer userId, Integer signstartId);
 
     @Query("SELECT SUM(c.reviewcost) FROM ReviewCost c WHERE c.userId = :userId")
     Long sumCostByUserId(@Param("userId") Integer userId);
