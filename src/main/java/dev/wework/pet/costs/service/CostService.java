@@ -1089,9 +1089,15 @@ public class CostService {
 
     @Transactional
     public void deleteReviewCost(Integer id) {
-        if (!reviewCostRepository.existsById(id)) {
-            throw new IllegalArgumentException("ReviewCost not found with id: " + id);
+        ReviewCost reviewCost = reviewCostRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ReviewCost not found with id: " + id));
+
+        // ✅ 연관된 ChargeCost 삭제
+        if (reviewCost.getSignstartId() != null) {
+            chargeCostRepository.deleteBySignstartId(reviewCost.getSignstartId());
         }
+
+        // ReviewCost 삭제
         reviewCostRepository.deleteById(id);
     }
 

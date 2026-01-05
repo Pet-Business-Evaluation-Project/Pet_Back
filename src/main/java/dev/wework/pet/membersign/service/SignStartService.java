@@ -37,7 +37,7 @@ public class SignStartService {
 
     private final SignRepository signRepository;
     private final SignStartRepository signStartRepository;
-    private final ReviewerRepository reviewerRepository; // 추가
+    private final ReviewerRepository reviewerRepository;
     private final MemberRepository memberRepository;
     private final UserRepository userRepository;
     private final CostService costService;
@@ -49,6 +49,7 @@ public class SignStartService {
     private final SignStartServiceExtension signStartServiceExtension;
 
     private final RevenueRepository revenueRepository;
+
     private SignStartResponseDto mapToDto(SignStart signStart) {
         String companyName = signRepository.findCompanyNameBySignId(signStart.getSignId())
                 .orElse("알 수 없음");
@@ -78,32 +79,18 @@ public class SignStartService {
         );
     }
 
-    /**
-     * 기업 규모(MemberGrade)에 따른 영업비를 계산합니다.
-     * CostConfig 설정을 사용합니다.
-     */
     private long calculateInviteCost(MemberGrade memberGrade) {
         return costConfigService.calculateInviteCost(memberGrade);
     }
 
-    /**
-     * signcount를 반영한 심사비를 계산합니다.
-     * CostConfig 설정을 사용합니다.
-     */
     private long calculateReviewCost(Reviewergrade reviewergrade, int signcount) {
         return costConfigService.calculateReviewCost(reviewergrade, signcount);
     }
 
-    /**
-     * 영업비에서 수수료를 계산합니다.
-     * CostConfig 설정을 사용합니다.
-     */
-    private long calculateChargeCost(long inviteCost, ReferralGrade referralGrade) {
-        return costConfigService.calculateChargeCost(inviteCost, referralGrade);
+    private long calculateChargeCost(long reviewCost, ReferralGrade referralGrade) {
+        return costConfigService.calculateChargeCost(reviewCost, referralGrade);
     }
 
-
-    // 권한 체크
     private void checkPermission(User user, SignStart signStart) {
         if (user.getClassification() == Classification.관리자) return;
         if (user.getClassification() == Classification.심사원) {
@@ -115,18 +102,15 @@ public class SignStartService {
         }
     }
 
-    // 새 sign_id 생성 + 여러 심사원 배정 (존재하는 reviewer만)
     @Transactional
     public List<SignStartResponseDto> createSignStart(SignStartRequestDto dto, User user) {
         if (user.getClassification() != Classification.관리자)
             throw new IllegalArgumentException("관리자만 인증을 생성할 수 있습니다.");
 
-        // 🔥 member 존재 여부 체크 추가
         if (!memberRepository.existsById(dto.getMemberId())) {
             throw new IllegalArgumentException("존재하지 않는 member_id입니다.");
         }
 
-        // 영업 심사원 존재 여부 체크 및 User ID 조회
         dev.wework.pet.user.signup.entity.Reviewer salesReviewer = reviewerRepository.findById(dto.getSalesReviewerId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 영업 심사원입니다."));
 
@@ -141,20 +125,18 @@ public class SignStartService {
                     .orElseThrow(() -> new IllegalArgumentException("Member not found: " + dto.getMemberId()));
 
             signStartServiceExtension.createRevenueForSignStart(
-                    sign.getSignId(),              // Sign ID
-                    member.getUser().getName(),    // 기업명
-                    dto.getMemberId(),             // Member ID
-                    dto.getMembergrade(),          // "level1", "level2", etc.
-                    dto.getSigntype()              // 인증 유형
+                    sign.getSignId(),
+                    member.getUser().getName(),
+                    dto.getMemberId(),
+                    dto.getMembergrade(),
+                    dto.getSigntype()
             );
         } catch (Exception e) {
-            // Revenue 생성 실패해도 인증 생성은 계속 진행
             System.err.println("Revenue 생성 실패: " + e.getMessage());
         }
 
         List<SignStartResponseDto> responses = new ArrayList<>();
         for (Integer reviewerId : dto.getReviewerIds()) {
-            // 실제 reviewer 존재 여부 체크 (grades와 함께 fetch)
             dev.wework.pet.user.signup.entity.Reviewer reviewer = reviewerRepository.findByIdWithGrades(reviewerId).orElse(null);
             if (reviewer == null) continue;
 
@@ -162,7 +144,6 @@ public class SignStartService {
             signStart.setSignId(sign.getSignId());
             signStart.setReviewerId(reviewerId);
             signStart.setSalesReviewerId(dto.getSalesReviewerId());
-            //signStart.setSigntype(SignType.valueOf(dto.getSigntype()));
             signStart.setSigntype(dto.getSigntype() != null ? SignType.valueOf(dto.getSigntype()) : null);
             signStart.setMembergrade(memberGrade);
             signStart.setSignstate(dto.getSignstate() != null ? SignState.valueOf(dto.getSignstate()) : null);
@@ -175,7 +156,6 @@ public class SignStartService {
             signStartRepository.save(signStart);
             responses.add(mapToDto(signStart));
 
-            // 심사원의 등급 조회 및 심사비 자동 생성
             if (!reviewer.getGrades().isEmpty()) {
                 Reviewergrade reviewerGrade = reviewer.getGrades().get(0).getReviewerGrade();
                 long reviewCost = calculateReviewCost(reviewerGrade, 1);
@@ -186,10 +166,33 @@ public class SignStartService {
                         reviewCost
                 );
                 reviewCostRepository.save(reviewCostEntity);
+
+                // ✅ 심사원의 추천인에게 ChargeCost 지급 (signstartId 포함)
+                String referralLoginID = reviewer.getUser().getReferralID();
+                if (referralLoginID != null && !referralLoginID.isEmpty()) {
+                    User referralUser = userRepository.findByLoginID(referralLoginID);
+                    if (referralUser != null) {
+                        reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
+                            if (!referralReviewer.getGrades().isEmpty()) {
+                                ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
+                                if (referralGrade != null) {
+                                    long chargeCost = calculateChargeCost(reviewCost, referralGrade);
+
+                                    ChargeCost chargeCostEntity = new ChargeCost(
+                                            referralUser.getUserId(),
+                                            sign.getSignId(),
+                                            signStart.getSignstartId(), // ✅ signstartId 추가
+                                            chargeCost
+                                    );
+                                    chargeCostRepository.save(chargeCostEntity);
+                                }
+                            }
+                        });
+                    }
+                }
             }
         }
 
-        // 영업 심사원에게 영업비 자동 지급
         InviteCost inviteCostEntity = new InviteCost(
                 salesReviewer.getUser().getUserId(),
                 sign.getSignId(),
@@ -197,38 +200,9 @@ public class SignStartService {
         );
         inviteCostRepository.save(inviteCostEntity);
 
-        // 영업 심사원의 추천인에게 수수료 자동 지급
-        String referralLoginID = salesReviewer.getUser().getReferralID();
-        if (referralLoginID != null && !referralLoginID.isEmpty()) {
-            // 추천인 User 찾기
-            User referralUser = userRepository.findByLoginID(referralLoginID);
-            if (referralUser != null) {
-                // 추천인이 심사원인지 확인
-                reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
-                    // 추천인의 추천등급 확인
-                    if (!referralReviewer.getGrades().isEmpty()) {
-                        ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
-                        if (referralGrade != null) {
-                            // 수수료 계산
-                            long chargeCost = calculateChargeCost(inviteCost, referralGrade);
-
-                            // ChargeCost 생성
-                            ChargeCost chargeCostEntity = new ChargeCost(
-                                    referralUser.getUserId(),
-                                    sign.getSignId(),
-                                    chargeCost
-                            );
-                            chargeCostRepository.save(chargeCostEntity);
-                        }
-                    }
-                });
-            }
-        }
-
         return responses;
     }
 
-    // 기존 sign_id에 심사원 추가 (기존 데이터값 동기화, signcount 0, 실제 존재 reviewer만)
     @Transactional
     public List<SignStartResponseDto> addReviewersToSign(SignStartRequestDto dto, User user) {
         if (user.getClassification() != Classification.관리자)
@@ -243,20 +217,16 @@ public class SignStartService {
         List<SignStartResponseDto> responses = new ArrayList<>();
 
         for (Integer reviewerId : dto.getReviewerIds()) {
-            // 이미 배정된 심사원은 skip
             boolean exists = existingSignStarts.stream()
                     .anyMatch(s -> s.getReviewerId() == reviewerId);
             if (exists) continue;
 
-            // 실제 reviewer 존재 여부 체크 (grades와 함께 fetch)
             dev.wework.pet.user.signup.entity.Reviewer reviewer = reviewerRepository.findByIdWithGrades(reviewerId).orElse(null);
             if (reviewer == null) continue;
 
             SignStart signStart = new SignStart();
             signStart.setSignId(dto.getSignId());
             signStart.setReviewerId(reviewerId);
-
-            // 기존 데이터값 그대로 복사
             signStart.setSalesReviewerId(reference.getSalesReviewerId());
             signStart.setSigntype(reference.getSigntype());
             signStart.setMembergrade(reference.getMembergrade());
@@ -265,14 +235,11 @@ public class SignStartService {
             signStart.setEffectivedate(reference.getEffectivedate());
             signStart.setReviewcomplete(reference.getReviewcomplete());
             signStart.setAffairdo(reference.getAffairdo());
-
-            // signcount는 1로 초기화
             signStart.setSigncount(1);
 
             signStartRepository.save(signStart);
             responses.add(mapToDto(signStart));
 
-            // 심사원의 등급 조회 및 심사비 자동 생성
             if (!reviewer.getGrades().isEmpty()) {
                 Reviewergrade reviewerGrade = reviewer.getGrades().get(0).getReviewerGrade();
                 long reviewCost = calculateReviewCost(reviewerGrade, 1);
@@ -283,6 +250,30 @@ public class SignStartService {
                         reviewCost
                 );
                 reviewCostRepository.save(reviewCostEntity);
+
+                // ✅ 심사원의 추천인에게 ChargeCost 지급 (signstartId 포함)
+                String referralLoginID = reviewer.getUser().getReferralID();
+                if (referralLoginID != null && !referralLoginID.isEmpty()) {
+                    User referralUser = userRepository.findByLoginID(referralLoginID);
+                    if (referralUser != null) {
+                        reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
+                            if (!referralReviewer.getGrades().isEmpty()) {
+                                ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
+                                if (referralGrade != null) {
+                                    long chargeCost = calculateChargeCost(reviewCost, referralGrade);
+
+                                    ChargeCost chargeCostEntity = new ChargeCost(
+                                            referralUser.getUserId(),
+                                            dto.getSignId(),
+                                            signStart.getSignstartId(), // ✅ signstartId 추가
+                                            chargeCost
+                                    );
+                                    chargeCostRepository.save(chargeCostEntity);
+                                }
+                            }
+                        });
+                    }
+                }
             }
         }
 
@@ -293,55 +284,26 @@ public class SignStartService {
     public List<SignStartResponseDto> getAllSignStarts() {
         List<SignStart> allSignStarts = signStartRepository.findAll();
         List<SignStartResponseDto> responses = new ArrayList<>();
-
         for (SignStart s : allSignStarts) {
             responses.add(mapToDto(s));
         }
         return responses;
     }
 
-    // 상세 조회 (권한 체크 포함)
     @Transactional(readOnly = true)
     public SignStartResponseDto getSignStartDetail(int signstartId, User user) {
         SignStart s = signStartRepository.findById(signstartId)
                 .orElseThrow(() -> new IllegalArgumentException("SignStart not found"));
 
-        // 심사원일 경우, 본인에게 배정된 인증만 접근 가능
         if (user.getClassification() == Classification.심사원) {
             if (user.getReviewer() == null || s.getReviewerId() != user.getReviewer().getReviewerId()) {
                 throw new IllegalArgumentException("권한이 없습니다. 본인 담당 인증만 접근 가능합니다.");
             }
         }
 
-        String companyName = signRepository.findCompanyNameBySignId(s.getSignId())
-                .orElse("알 수 없음");
+        return mapToDto(s);
+    }
 
-        String reviewerName = reviewerRepository.findReviewerNameByReviewerId(s.getReviewerId())
-                .orElse("알 수 없음");
-
-        String salesReviewerName = reviewerRepository.findReviewerNameByReviewerId(s.getSalesReviewerId())
-                .orElse("알 수 없음");
-
-        return new SignStartResponseDto(
-                s.getSignstartId(),
-                s.getSignId(),
-                s.getReviewerId(),
-                s.getSalesReviewerId(),
-                s.getSigntype() != null ? s.getSigntype().name() : null,
-                s.getMembergrade() != null ? s.getMembergrade().name() : null,
-                s.getSignstate() != null ? s.getSignstate().name() : null,
-                s.getSigndate(),
-                s.getEffectivedate(),
-                s.getReviewcomplete() != null ? s.getReviewcomplete().name() : null,
-                s.getAffairdo() != null ? s.getAffairdo().name() : null,
-                s.getSigncount(),
-                companyName,
-                reviewerName,
-                salesReviewerName
-        );
-    } //여기까지도 새로 추가한 것
-
-    // sign_id 단위 조회
     @Transactional(readOnly = true)
     public List<SignStartResponseDto> getSignStartsBySignId(int signId, User user) {
         List<SignStart> signStarts = signStartRepository.findBySignId(signId);
@@ -353,7 +315,6 @@ public class SignStartService {
         return responses;
     }
 
-    // 단일 업데이트
     @Transactional
     public SignStartResponseDto updateSignStart(int signstartId, SignStartRequestDto dto, User user) {
         SignStart targetSignStart = signStartRepository.findById(signstartId)
@@ -362,7 +323,6 @@ public class SignStartService {
         checkPermission(user, targetSignStart);
         List<SignStart> relatedSignStarts = signStartRepository.findBySignId(targetSignStart.getSignId());
 
-        // membergrade 변경 시 InviteCost 업데이트
         boolean memberGradeChanged = false;
         if (user.getClassification() == Classification.관리자 && dto.getMembergrade() != null) {
             MemberGrade newMemberGrade = MemberGrade.valueOf(dto.getMembergrade());
@@ -372,7 +332,6 @@ public class SignStartService {
             }
         }
 
-        // signtype 변경 추적
         boolean signtypeChanged = false;
         SignType newSignType = null;
         if (user.getClassification() == Classification.관리자 && dto.getSigntype() != null) {
@@ -382,16 +341,15 @@ public class SignStartService {
             }
         }
 
-        // signcount 변경 시 ReviewCost 업데이트 (관리자만 가능)
+        // ✅ signcount 변경 체크 수정
         boolean signcountChanged = false;
-        if (user.getClassification() == Classification.관리자 && targetSignStart.getSigncount() != dto.getSigncount()) {
+        if (dto.getSigncount() != 0 && targetSignStart.getSigncount() != dto.getSigncount()) {
             signcountChanged = true;
             targetSignStart.setSigncount(dto.getSigncount());
         }
 
         for (SignStart s : relatedSignStarts) {
             if (s.getSignstartId() == targetSignStart.getSignstartId()) continue;
-            // 심사원은 signtype과 affairdo를 수정할 수 없음
             if (user.getClassification() == Classification.관리자) {
                 if (dto.getSigntype() != null) s.setSigntype(SignType.valueOf(dto.getSigntype()));
                 if (dto.getAffairdo() != null) s.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
@@ -402,7 +360,6 @@ public class SignStartService {
             if (dto.getReviewcomplete() != null) s.setReviewcomplete(ReviewComplete.valueOf(dto.getReviewcomplete()));
         }
 
-        // 심사원은 signtype과 affairdo를 수정할 수 없음
         if (user.getClassification() == Classification.관리자) {
             if (dto.getSigntype() != null) targetSignStart.setSigntype(SignType.valueOf(dto.getSigntype()));
             if (dto.getAffairdo() != null) targetSignStart.setAffairdo(AffairDo.valueOf(dto.getAffairdo()));
@@ -415,7 +372,7 @@ public class SignStartService {
         signStartRepository.save(targetSignStart);
         for (SignStart s : relatedSignStarts) signStartRepository.save(s);
 
-        // signcount 변경 시 ReviewCost 업데이트
+        // ✅ signcount 변경 시 ReviewCost와 ChargeCost 업데이트
         if (signcountChanged) {
             reviewCostRepository.findBySignstartId(signstartId).ifPresent(reviewCost -> {
                 dev.wework.pet.user.signup.entity.Reviewer reviewer = reviewerRepository.findByIdWithGrades(targetSignStart.getReviewerId()).orElse(null);
@@ -424,55 +381,45 @@ public class SignStartService {
                     long newReviewCost = calculateReviewCost(reviewerGrade, dto.getSigncount());
                     reviewCost.setReviewcost(newReviewCost);
                     reviewCostRepository.save(reviewCost);
+
+                    // ✅ 이 signstart에 연결된 ChargeCost 업데이트
+                    chargeCostRepository.findBySignstartId(signstartId).ifPresent(chargeCost -> {
+                        String referralLoginID = reviewer.getUser().getReferralID();
+                        if (referralLoginID != null && !referralLoginID.isEmpty()) {
+                            User referralUser = userRepository.findByLoginID(referralLoginID);
+                            if (referralUser != null) {
+                                reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
+                                    if (!referralReviewer.getGrades().isEmpty()) {
+                                        ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
+                                        if (referralGrade != null) {
+                                            long newChargeCost = calculateChargeCost(newReviewCost, referralGrade);
+                                            chargeCost.setChargecost(newChargeCost);
+                                            chargeCostRepository.save(chargeCost);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
                 }
             });
         }
 
-        // membergrade 변경 시 InviteCost 및 ChargeCost 업데이트
         if (memberGradeChanged) {
             MemberGrade updatedMemberGrade = targetSignStart.getMembergrade();
             long newInviteCost = calculateInviteCost(updatedMemberGrade);
-
-            // 기업 인증 비용 원본 값 조회
             Long certificationCost = costConfigService.getConfigValue("MEMBER_GRADE_CERTIFICATION", updatedMemberGrade.name());
 
-            // InviteCost 업데이트
             inviteCostRepository.findBySignId(targetSignStart.getSignId()).ifPresent(inviteCost -> {
                 inviteCost.setInvitecost(newInviteCost);
                 inviteCostRepository.save(inviteCost);
             });
 
-            // ChargeCost 업데이트 (추천인이 있는 경우)
-            chargeCostRepository.findBySignId(targetSignStart.getSignId()).ifPresent(chargeCost -> {
-                // 영업 심사원 조회
-                reviewerRepository.findByIdWithGrades(targetSignStart.getSalesReviewerId()).ifPresent(salesReviewer -> {
-                    String referralLoginID = salesReviewer.getUser().getReferralID();
-                    if (referralLoginID != null && !referralLoginID.isEmpty()) {
-                        // 추천인의 추천등급 조회
-                        User referralUser = userRepository.findByLoginID(referralLoginID);
-                        if (referralUser != null) {
-                            reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
-                                if (!referralReviewer.getGrades().isEmpty()) {
-                                    ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
-                                    if (referralGrade != null) {
-                                        long newChargeCost = calculateChargeCost(newInviteCost, referralGrade);
-                                        chargeCost.setChargecost(newChargeCost);
-                                        chargeCostRepository.save(chargeCost);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-            });
-
-            // Revenue 업데이트 - "기업인증" 카테고리
             List<Revenue> revenues = revenueRepository.findBySignId(targetSignStart.getSignId());
             for (Revenue revenue : revenues) {
                 if ("기업인증".equals(revenue.getCategory())) {
                     revenue.setAmount(BigDecimal.valueOf(certificationCost));
-                    // certificationLevel 업데이트 (level1 -> 1, level2 -> 2, ...)
-                    String gradeName = updatedMemberGrade.name(); // "level1", "level2", ...
+                    String gradeName = updatedMemberGrade.name();
                     int level = Integer.parseInt(gradeName.replace("level", ""));
                     revenue.setCertificationLevel(level);
                     revenueRepository.save(revenue);
@@ -480,7 +427,6 @@ public class SignStartService {
             }
         }
 
-        // signtype 변경 시 Revenue의 certificationType 업데이트
         if (signtypeChanged && newSignType != null) {
             List<Revenue> revenues = revenueRepository.findBySignId(targetSignStart.getSignId());
             for (Revenue revenue : revenues) {
@@ -500,8 +446,8 @@ public class SignStartService {
                 .orElseThrow(() -> new IllegalArgumentException("SignStart not found"));
         checkPermission(user, signStart);
 
-        // 관련된 ReviewCost 삭제
         reviewCostRepository.deleteBySignstartId(signstartId);
+        chargeCostRepository.deleteBySignstartId(signstartId); // ✅ 추가
 
         signStartRepository.delete(signStart);
     }
@@ -554,7 +500,7 @@ public class SignStartService {
             signStartRepository.save(s);
             responses.add(mapToDto(s));
 
-            // signcount 변경 시 ReviewCost 업데이트
+            // ✅ signcount 변경 시 업데이트
             if (signcountChanged) {
                 reviewCostRepository.findBySignstartId(s.getSignstartId()).ifPresent(reviewCost -> {
                     dev.wework.pet.user.signup.entity.Reviewer reviewer = reviewerRepository.findByIdWithGrades(s.getReviewerId()).orElse(null);
@@ -563,59 +509,46 @@ public class SignStartService {
                         long newReviewCost = calculateReviewCost(reviewerGrade, dto.getSigncount());
                         reviewCost.setReviewcost(newReviewCost);
                         reviewCostRepository.save(reviewCost);
+
+                        // ✅ signstartId로 ChargeCost 찾기
+                        chargeCostRepository.findBySignstartId(s.getSignstartId()).ifPresent(chargeCost -> {
+                            String referralLoginID = reviewer.getUser().getReferralID();
+                            if (referralLoginID != null && !referralLoginID.isEmpty()) {
+                                User referralUser = userRepository.findByLoginID(referralLoginID);
+                                if (referralUser != null) {
+                                    reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
+                                        if (!referralReviewer.getGrades().isEmpty()) {
+                                            ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
+                                            if (referralGrade != null) {
+                                                long newChargeCost = calculateChargeCost(newReviewCost, referralGrade);
+                                                chargeCost.setChargecost(newChargeCost);
+                                                chargeCostRepository.save(chargeCost);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
                     }
                 });
             }
         }
 
-        // membergrade 변경 시 InviteCost 및 ChargeCost 업데이트 (sign 단위로 한 번만)
         if (memberGradeChanged && updatedMemberGrade != null) {
             final MemberGrade finalMemberGrade = updatedMemberGrade;
             long newInviteCost = calculateInviteCost(finalMemberGrade);
-
-            // 기업 인증 비용 원본 값 조회
             Long certificationCost = costConfigService.getConfigValue("MEMBER_GRADE_CERTIFICATION", finalMemberGrade.name());
 
-            // InviteCost 업데이트
             inviteCostRepository.findBySignId(signId).ifPresent(inviteCost -> {
                 inviteCost.setInvitecost(newInviteCost);
                 inviteCostRepository.save(inviteCost);
             });
 
-            // ChargeCost 업데이트 (추천인이 있는 경우)
-            if (!signStarts.isEmpty()) {
-                int salesReviewerId = signStarts.get(0).getSalesReviewerId();
-                chargeCostRepository.findBySignId(signId).ifPresent(chargeCost -> {
-                    // 영업 심사원 조회
-                    reviewerRepository.findByIdWithGrades(salesReviewerId).ifPresent(salesReviewer -> {
-                        String referralLoginID = salesReviewer.getUser().getReferralID();
-                        if (referralLoginID != null && !referralLoginID.isEmpty()) {
-                            // 추천인의 추천등급 조회
-                            User referralUser = userRepository.findByLoginID(referralLoginID);
-                            if (referralUser != null) {
-                                reviewerRepository.findByUserUserId(referralUser.getUserId()).ifPresent(referralReviewer -> {
-                                    if (!referralReviewer.getGrades().isEmpty()) {
-                                        ReferralGrade referralGrade = referralReviewer.getGrades().get(0).getReferralgrade();
-                                        if (referralGrade != null) {
-                                            long newChargeCost = calculateChargeCost(newInviteCost, referralGrade);
-                                            chargeCost.setChargecost(newChargeCost);
-                                            chargeCostRepository.save(chargeCost);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    });
-                });
-            }
-
-            // Revenue 업데이트 - "기업인증" 카테고리
             List<Revenue> revenues = revenueRepository.findBySignId(signId);
             for (Revenue revenue : revenues) {
                 if ("기업인증".equals(revenue.getCategory())) {
                     revenue.setAmount(BigDecimal.valueOf(certificationCost));
-                    // certificationLevel 업데이트 (level1 -> 1, level2 -> 2, ...)
-                    String gradeName = finalMemberGrade.name(); // "level1", "level2", ...
+                    String gradeName = finalMemberGrade.name();
                     int level = Integer.parseInt(gradeName.replace("level", ""));
                     revenue.setCertificationLevel(level);
                     revenueRepository.save(revenue);
@@ -623,7 +556,6 @@ public class SignStartService {
             }
         }
 
-        // signtype 변경 시 Revenue의 certificationType 업데이트
         if (signtypeChanged && updatedSignType != null) {
             List<Revenue> revenues = revenueRepository.findBySignId(signId);
             for (Revenue revenue : revenues) {
@@ -645,9 +577,9 @@ public class SignStartService {
 
         List<SignStart> signStarts = signStartRepository.findBySignId(signId);
 
-        // 각 SignStart에 연결된 ReviewCost 삭제
         for (SignStart signStart : signStarts) {
             reviewCostRepository.deleteBySignstartId(signStart.getSignstartId());
+            chargeCostRepository.deleteBySignstartId(signStart.getSignstartId()); // ✅ 추가
         }
 
         signStartRepository.deleteAll(signStarts);
@@ -659,29 +591,24 @@ public class SignStartService {
             throw new IllegalArgumentException("관리자만 Sign을 삭제할 수 있습니다.");
         }
 
-        // Sign 존재 여부 확인
         Sign sign = signRepository.findById(signId)
                 .orElseThrow(() -> new IllegalArgumentException("Sign not found"));
 
-        // 연관된 SignStart 조회
         List<SignStart> relatedSignStarts = signStartRepository.findBySignId(signId);
 
-        // 1. 각 SignStart에 연결된 ReviewCost 삭제
         for (SignStart signStart : relatedSignStarts) {
             reviewCostRepository.deleteBySignstartId(signStart.getSignstartId());
+            chargeCostRepository.deleteBySignstartId(signStart.getSignstartId()); // ✅ 추가
         }
 
-        // 2. SignStart 삭제
         if (!relatedSignStarts.isEmpty()) {
             signStartRepository.deleteAll(relatedSignStarts);
         }
 
-        // 3. Sign에 연결된 InviteCost와 ChargeCost 삭제
         inviteCostRepository.deleteBySignId(signId);
         chargeCostRepository.deleteBySignId(signId);
         revenueRepository.deleteBySignId(signId);
 
-        // 4. Sign 삭제
         signRepository.delete(sign);
     }
 

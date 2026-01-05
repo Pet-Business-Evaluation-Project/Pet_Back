@@ -7,7 +7,6 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-// ChargeCost Entity
 @Entity
 @Table(name = "chargecosts")
 @Getter
@@ -27,6 +26,10 @@ public class ChargeCost {
     @Column(name = "sign_id")
     private Integer signId;
 
+    // ✅ 추가: 어떤 심사원(signstart)의 ReviewCost와 연결되는지 추적
+    @Column(name = "signstart_id")
+    private Integer signstartId;
+
     @Column(name = "chargecost")
     private Long chargecost;
 
@@ -45,6 +48,15 @@ public class ChargeCost {
     public ChargeCost(Integer userId, Integer signId, Long chargecost) {
         this.userId = userId;
         this.signId = signId;
+        this.chargecost = chargecost;
+        this.createdat = LocalDateTime.now();
+    }
+
+    // ✅ 새로운 생성자: signstartId 포함
+    public ChargeCost(Integer userId, Integer signId, Integer signstartId, Long chargecost) {
+        this.userId = userId;
+        this.signId = signId;
+        this.signstartId = signstartId;
         this.chargecost = chargecost;
         this.createdat = LocalDateTime.now();
     }
