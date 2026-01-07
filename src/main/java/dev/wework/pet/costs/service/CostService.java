@@ -3,6 +3,7 @@ package dev.wework.pet.costs.service;
 import dev.wework.pet.costs.dto.*;
 import dev.wework.pet.costs.entity.*;
 import dev.wework.pet.costs.repository.*;
+import dev.wework.pet.membersign.repository.SignStartRepository;
 import dev.wework.pet.user.signup.entity.Reviewer;
 import dev.wework.pet.user.signup.repository.ReviewerRepository;
 import dev.wework.pet.user.signup.repository.UserRepository;
@@ -26,6 +27,7 @@ public class CostService {
     private final TotalCostRepository totalCostRepository;
     private final UserRepository userRepository;
     private final ReviewerRepository reviewerRepository; // 🔐 추가
+    private final SignStartRepository signStartRepository;
 
     // ========================================
     // 유효성 검증 Helper 메서드
@@ -1092,6 +1094,7 @@ public class CostService {
         ReviewCost reviewCost = reviewCostRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ReviewCost not found with id: " + id));
 
+        Integer signstartId = reviewCost.getSignstartId();
         // ✅ 연관된 ChargeCost 삭제
         if (reviewCost.getSignstartId() != null) {
             chargeCostRepository.deleteBySignstartId(reviewCost.getSignstartId());
@@ -1099,6 +1102,13 @@ public class CostService {
 
         // ReviewCost 삭제
         reviewCostRepository.deleteById(id);
+
+       if(signstartId != null) {
+           signStartRepository.findById(signstartId).ifPresent(s -> {
+               signStartRepository.delete(s);
+
+           });
+       }
     }
 
     @Transactional
