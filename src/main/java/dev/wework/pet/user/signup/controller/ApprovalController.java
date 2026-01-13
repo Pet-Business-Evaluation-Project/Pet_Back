@@ -234,6 +234,19 @@ public class ApprovalController {
         }
     }
 
+    @DeleteMapping("/delete-rejected/{approvalId}")
+    public ResponseEntity<String> deleteRejectedApproval(
+            @PathVariable int approvalId,
+            @RequestParam int adminId) {
+
+        try {
+            userService.deleteRejectedApproval(approvalId, adminId);
+            return ResponseEntity.ok("✅ 거부된 신청이 완전히 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ " + e.getMessage());
+        }
+    }
+
     /**
      * 기존 회원들의 추천비 데이터 일괄 생성
      */
